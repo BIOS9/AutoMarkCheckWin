@@ -1,13 +1,12 @@
 ﻿using CredentialManagement;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AutoMarkCheck
 {
+    /**
+     * <summary>Manages credentials used by the AutoMarkCheck bot.</summary>
+     */
     class CredentialManager
     {
         private const string VUW_CREDENTIAL_STORE_TARGET = "AutoMarkCheckVUW";
@@ -55,7 +54,7 @@ namespace AutoMarkCheck
             var discordCredentials = new Credential { Target = DISCORD_CREDENTIAL_STORE_TARGET };
 
             if (!myVuwCredentials.Load() || !discordCredentials.Load()) return null; //If loading fails
-
+            
             //Load credentials into MarkCredentials object
             var creds = new MarkCredentials(
                 myVuwCredentials.Username, 
@@ -97,8 +96,8 @@ namespace AutoMarkCheck
          */
         public static bool DeleteCredentials()
         {
-            var myVuwCredentials = new Credential { Target = VUW_CREDENTIAL_STORE_TARGET };
-            var discordCredentials = new Credential { Target = DISCORD_CREDENTIAL_STORE_TARGET };
+            Credential myVuwCredentials = new Credential { Target = VUW_CREDENTIAL_STORE_TARGET };
+            Credential discordCredentials = new Credential { Target = DISCORD_CREDENTIAL_STORE_TARGET };
             return myVuwCredentials.Delete() && discordCredentials.Delete();
         }
     }
