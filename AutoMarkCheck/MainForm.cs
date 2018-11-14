@@ -23,12 +23,29 @@ namespace AutoMarkCheck
 
         private async void button1_Click(object sender, EventArgs e)
         {
-            await MyVUWAgent.GetGrades(GetCredentials());
+            var creds = GetCredentials();
+            if (creds == null)
+            {
+                MessageBox.Show("No creds");
+                return;
+            }
+            try
+            {
+                var grades = await MyVUWAgent.GetGrades(creds);
+                MessageBox.Show("grade count: " + grades.Count);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
+        private async void MainForm_Load(object sender, EventArgs e)
         {
-            
+
+            //PersistentWebClient client = new PersistentWebClient();
+            //string html = await client.Get("https://my.vuw.ac.nz");
+            //client.DisplayHTML(html);
         }
     }
 }

@@ -113,19 +113,34 @@ namespace AutoMarkCheck
          */
         public static MarkCredentials GetCredentials()
         {
-            //Get credentials from Windows credential store
-            var myVuwCredentials = new Credential { Target = VUW_CREDENTIAL_STORE_TARGET };
-            var discordCredentials = new Credential { Target = DISCORD_CREDENTIAL_STORE_TARGET };
+            try
+            {
+                //Get credentials from Windows credential store
+                var myVuwCredentials = new Credential { Target = VUW_CREDENTIAL_STORE_TARGET };
+                var discordCredentials = new Credential { Target = DISCORD_CREDENTIAL_STORE_TARGET };
 
-            if (!myVuwCredentials.Load() || !discordCredentials.Load()) return null; //If loading fails
+                if (!myVuwCredentials.Load() || !discordCredentials.Load())
+                {
+                    Logging.Log(Logging.LogLevel.WARNING, "CredentialManager.GetCredentials", "There are no credentials saved for AutoMarkCheck.");
+                    return null; //If loading fails
+                }
 
-            //Load credentials into MarkCredentials object
-            var creds = new MarkCredentials(
-                myVuwCredentials.Username,
-                myVuwCredentials.SecurePassword,
-                discordCredentials.SecurePassword);
+                //Load credentials into MarkCredentials object
+                var creds = new MarkCredentials(
+                    myVuwCredentials.Username,
+                    myVuwCredentials.SecurePassword,
+                    discordCredentials.SecurePassword);
 
-            return creds;
+                Logging.Log(Logging.LogLevel.DEBUG, "CredentialManager.GetCredentials", "Successfully got credentials from the credential store.");
+
+                return creds;
+            }
+            catch(Exception ex)
+            {
+                Logging.Log(Logging.LogLevel.ERROR, "CredentialManager.GetCredentials", "Failed to get credentials from the credential store.", ex);
+
+                return null;
+            }
         }
 
         /**
@@ -135,36 +150,57 @@ namespace AutoMarkCheck
          */
         public static void SetCredentials(MarkCredentials credentials)
         {
-            //Create and save MyVictoria credential object
-            var myVuwCredentials = new Credential
+            try
             {
-                Target = VUW_CREDENTIAL_STORE_TARGET,
-                PersistanceType = PersistanceType.LocalComputer,
-                Username = credentials.Username,
-                SecurePassword = credentials.Password,
-                Type = CredentialType.Generic,
-                Description = "MyVictoria user credentials for AutoMarkCheck bot."
-            }.Save();
+                //Create and save MyVictoria credential object
+                var myVuwCredentials = new Credential
+                {
+                    Target = VUW_CREDENTIAL_STORE_TARGET,
+                    PersistanceType = PersistanceType.LocalComputer,
+                    Username = credentials.Username,
+                    SecurePassword = credentials.Password,
+                    Type = CredentialType.Generic,
+                    Description = "MyVictoria user credentials for AutoMarkCheck bot."
+                }.Save();
 
-            //Create and save Discord bot credential object
-            var discordCredentials = new Credential
+                //Create and save Discord bot credential object
+                var discordCredentials = new Credential
+                {
+                    Target = DISCORD_CREDENTIAL_STORE_TARGET,
+                    PersistanceType = PersistanceType.LocalComputer,
+                    SecurePassword = credentials.BotToken,
+                    Type = CredentialType.Generic,
+                    Description = "Discord token for AutoMarkCheck bot."
+                }.Save();
+
+                Logging.Log(Logging.LogLevel.INFO, "CredentialManager.SetCredentials", "New credentials saved to the credential store.");
+            }
+            catch(Exception ex)
             {
-                Target = DISCORD_CREDENTIAL_STORE_TARGET,
-                PersistanceType = PersistanceType.LocalComputer,
-                SecurePassword = credentials.BotToken,
-                Type = CredentialType.Generic,
-                Description = "Discord token for AutoMarkCheck bot."
-            }.Save();
+                Logging.Log(Logging.LogLevel.ERROR, "CredentialManager.SetCredentials", "Failed to save new credentials to the credential store.", ex);
+            }
         }
 
         /**
          * <summary>Removes AutoMarkCheck credentials from the windows store.</summary>
          */
-        public static bool DeleteCredentials()
+        public static void DeleteCredentials()
         {
-            Credential myVuwCredentials = new Credential { Target = VUW_CREDENTIAL_STORE_TARGET };
-            Credential discordCredentials = new Credential { Target = DISCORD_CREDENTIAL_STORE_TARGET };
-            return myVuwCredentials.Delete() && discordCredentials.Delete();
+            try
+            {
+                Credential myVuwCredentials = new Credential { Target = VUW_CREDENTIAL_STORE_TARGET };
+                Credential discordCredentials = new Credential { Target = DISCORD_CREDENTIAL_STORE_TARGET };
+                bool deleted = myVuwCredentials.Delete() && discordCredentials.Delete();
+
+                if(deleted)
+                    Logging.Log(Logging.LogLevel.WARNING, "CredentialManager.DeleteCredentials", "One of the credentials may have not been deleted.");
+                else
+                    Logging.Log(Logging.LogLevel.INFO, "CredentialManager.DeleteCredentials", "Credentials successfully delete from the credential store.");
+            }
+            catch(Exception ex)
+            {
+                Logging.Log(Logging.LogLevel.ERROR, "CredentialManager.DeleteCredentials", "Failed to delete credentials from the credential store.");
+            }
         }
     }
 }

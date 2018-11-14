@@ -74,7 +74,7 @@
             this.panel1.ForeColor = System.Drawing.Color.Black;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(583, 37);
+            this.panel1.Size = new System.Drawing.Size(932, 37);
             this.panel1.TabIndex = 4;
             // 
             // panel2
@@ -84,7 +84,7 @@
             this.panel2.ForeColor = System.Drawing.Color.Black;
             this.panel2.Location = new System.Drawing.Point(0, 37);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(583, 3);
+            this.panel2.Size = new System.Drawing.Size(932, 3);
             this.panel2.TabIndex = 5;
             // 
             // MainForm
@@ -92,7 +92,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
-            this.ClientSize = new System.Drawing.Size(583, 344);
+            this.ClientSize = new System.Drawing.Size(932, 541);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.textBox3);
