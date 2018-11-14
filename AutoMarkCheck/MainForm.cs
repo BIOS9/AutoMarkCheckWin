@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -42,6 +43,15 @@ namespace AutoMarkCheck
 
         private async void MainForm_Load(object sender, EventArgs e)
         {
+            PersistentWebClient client = new PersistentWebClient();
+            await client.Get("https://cloudflare.com");
+            client.DisplayCookies();
+            await client.Get("https://cloudflare.com");
+            client.DisplayCookies();
+            client.ClearCookies();
+            await client.Get("https://cloudflare.com");
+            client.DisplayCookies();
+            
 
             //PersistentWebClient client = new PersistentWebClient();
             //string html = await client.Get("https://my.vuw.ac.nz");

@@ -67,7 +67,8 @@ namespace AutoMarkCheck
             string postStr = "";
             foreach (KeyValuePair<string, string> postItem in postData)
                 postStr += $"&{postItem.Key}={postItem.Value}";
-            postStr = postStr.Remove(0, 1); //Remove first &
+            if(postStr.Length > 0)
+                postStr = postStr.Remove(0, 1); //Remove first &
 
             byte[] postBytes = Encoding.ASCII.GetBytes(postStr);
             request.ContentLength = postBytes.Length;
@@ -107,8 +108,15 @@ namespace AutoMarkCheck
             {
                 cookieStr += c.Name + " = " + c.Value + "\n";
             }
-            cookieStr = cookieStr.Remove(0, 1);
-            MessageBox.Show(msg + " " + cookieStr);
+            if (cookieStr.Length > 0)
+            {
+                cookieStr = cookieStr.Remove(0, 1);
+                MessageBox.Show(msg + " " + cookieStr);
+            }
+            else
+            {
+                MessageBox.Show(msg + " No cookies.");
+            }
         }
 #endif
 
