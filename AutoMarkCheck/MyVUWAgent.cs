@@ -54,45 +54,45 @@ namespace AutoMarkCheck
          * <returns>A list of <see cref="CourseInfo">CourseGrade</see> objects containing the grades for each course.</returns>
          * <exception cref="AuthenticationException">Thrown if the credentials are incorrect or login fails for another reason.</exception>
          */
-        public static async Task<IList<CourseInfo>> GetGrades(MarkCredentials credentials)
+        public static async Task<List<CourseInfo>> GetGrades(MarkCredentials credentials)
         {
             try
             {
-                Logging.Log(Logging.LogLevel.DEBUG, "MyVUWAgent.GetGrades", "Grade grab started.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(MyVUWAgent)}.{nameof(GetGrades)}", "Grade grab started.");
 
-                PersistentWebClient client = await login(credentials); //Create logged in session
+                PersistentWebClient client = await Login(credentials); //Create logged in session
 
                 if (_setYearOnNext || DateTime.Now - _lastYearSet > YEAR_SET_INTERVAL)
                 {
                     _setYearOnNext = false;
                     _lastYearSet = DateTime.Now;
-                    await setGradeYear(client); //Set year for displayed grades to current year
+                    await SetGradeYear(client); //Set year for displayed grades to current year
                 }
 
                 string result = await client.Get(BASE_URL + GRADE_PATH); //Download grade page
 
-                List<CourseInfo> grades = parseGradeHtml(result);
+                List<CourseInfo> grades = ParseGradeHtml(result);
 
                 if (grades.Count == 0) //If no courses were found
                 {
                     _setYearOnNext = true;
-                    Logging.Log(Logging.LogLevel.WARNING, "MyVUWAgent.GetGrades", "No courses were found, Term/Year wil be set to current year on next request.");
+                    Logging.Log(Logging.LogLevel.WARNING, $"{nameof(MyVUWAgent)}.{nameof(GetGrades)}", "No courses were found, Term/Year wil be set to current year on next request.");
                 }
                 else
-                    Logging.Log(Logging.LogLevel.INFO, "MyVUWAgent.GetGrades", $"Successfully got {grades.Count} grades from MyVUW.");
+                    Logging.Log(Logging.LogLevel.INFO, $"{nameof(MyVUWAgent)}.{nameof(GetGrades)}", $"Successfully got {grades.Count} grades from MyVUW.");
 
-                Logging.Log(Logging.LogLevel.DEBUG, "MyVUWAgent.GetGrades", "Grade grab finished.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(MyVUWAgent)}.{nameof(GetGrades)}", "Grade grab finished.");
 
                 return grades;
             }
             catch (Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, "MyVUWAgent.GetGrades", "Failed to get grades.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(MyVUWAgent)}.{nameof(GetGrades)}", "Failed to get grades.", ex);
                 return new List<CourseInfo>(); //Return empty list
             }
         }
 
-        private static List<CourseInfo> parseGradeHtml(string html)
+        private static List<CourseInfo> ParseGradeHtml(string html)
         {
             try
             {
@@ -116,13 +116,13 @@ namespace AutoMarkCheck
                         });
                     }
 
-                Logging.Log(Logging.LogLevel.DEBUG, "MyVUWAgent.parseGradeHtml", "Successfully parsed grades HTML.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(MyVUWAgent)}.{nameof(ParseGradeHtml)}", "Successfully parsed grades HTML.");
 
                 return grades;
             }
             catch(Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, "MyVUWAgent.parseGradeHtml", "Failed to parsed grades HTML.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(MyVUWAgent)}.{nameof(ParseGradeHtml)}", "Failed to parsed grades HTML.", ex);
                 return new List<CourseInfo>();
             }
         }
@@ -133,12 +133,12 @@ namespace AutoMarkCheck
          * <returns>A <see cref="CookieCollection">CookieCollection</see> containing the cookies for the new logged in session.</returns>
          * <exception cref="AuthenticationException">Thrown when credentials are incorrect or the login has failed for another reason.</exception>
          */
-        private static async Task<PersistentWebClient> login(MarkCredentials credentials)
+        private static async Task<PersistentWebClient> Login(MarkCredentials credentials)
         {
             try
             {
-                Logging.Log(Logging.LogLevel.DEBUG, "MyVUWAgent.login", "Login started");
-                Tuple<string, PersistentWebClient> loginParams = await getLoginParams(); //Get login parameters such as session cookies and UUID
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(MyVUWAgent)}.{nameof(Login)}", "Login started");
+                Tuple<string, PersistentWebClient> loginParams = await GetLoginParams(); //Get login parameters such as session cookies and UUID
                 PersistentWebClient client = loginParams.Item2;
 
                 //Put post data into byte arrays for easy upload through the request stream
@@ -161,11 +161,11 @@ namespace AutoMarkCheck
                 request.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip, deflate");
                 request.Headers.Add(HttpRequestHeader.CacheControl, "no-cache");
 
-                Logging.Log(Logging.LogLevel.DEBUG, "MyVUWAgent.login", "Login request opened.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(MyVUWAgent)}.{nameof(Login)}", "Login request opened.");
 
                 using (Stream stream = await request.GetRequestStreamAsync())
                 {
-                    Logging.Log(Logging.LogLevel.DEBUG, "MyVUWAgent.login", "Writing login credentials.");
+                    Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(MyVUWAgent)}.{nameof(Login)}", "Writing login credentials.");
                     //Write UUID, Username and the start of the password
                     await stream.WriteAsync(uuidData, 0, uuidData.Length);
                     await stream.WriteAsync(userData, 0, userData.Length);
@@ -196,7 +196,7 @@ namespace AutoMarkCheck
                     }
                 }
 
-                Logging.Log(Logging.LogLevel.DEBUG, "MyVUWAgent.login", "Getting login response.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(MyVUWAgent)}.{nameof(Login)}", "Getting login response.");
 
                 //Get the login response
                 using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
@@ -205,7 +205,7 @@ namespace AutoMarkCheck
 
                     if (respStr.Contains("Failed")) //Check if page contains "Fail"
                     {
-                        Logging.Log(Logging.LogLevel.ERROR, "MyVUWAgent.login", "Login was rejected by MyVictoria for an unkown reason. Credentials may be incorrect.");
+                        Logging.Log(Logging.LogLevel.ERROR, $"{nameof(MyVUWAgent)}.{nameof(Login)}", "Login was rejected by MyVictoria for an unkown reason. Credentials may be incorrect.");
                         throw new AuthenticationException("Login failure returned from MyVictoria, credentials may be incorrect.");
                     }
 
@@ -216,7 +216,7 @@ namespace AutoMarkCheck
                 await client.Get(BASE_URL + LOGIN_OK_PATH);
                 await client.Get(BASE_URL + LOGIN_NEXT_PATH);
 
-                Logging.Log(Logging.LogLevel.INFO, "MyVUWAgent.login", "Successfully logged into MyVuw");
+                Logging.Log(Logging.LogLevel.INFO, $"{nameof(MyVUWAgent)}.{nameof(Login)}", "Successfully logged into MyVuw");
 
                 return client;
             }
@@ -230,24 +230,24 @@ namespace AutoMarkCheck
          * <summary>Gets session cookies and UUID created by MyVictoria website using a GET request, simulating someone loading the login page.</summary>
          * <returns>A tuple value containing the UUID as Item1 and the session cookies as Item2</returns>
          */
-        private static async Task<Tuple<string, PersistentWebClient>> getLoginParams()
+        private static async Task<Tuple<string, PersistentWebClient>> GetLoginParams()
         {
             try
             {
-                Logging.Log(Logging.LogLevel.DEBUG, "MyVUWAgent.getLoginParams", "Getting login parameters.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(MyVUWAgent)}.{nameof(GetLoginParams)}", "Getting login parameters.");
 
                 PersistentWebClient client = new PersistentWebClient();
 
                 string pageText = await client.Get(BASE_URL + LOGIN_PAGE_PATH); //Download page text
                 string uuid = Regex.Match(pageText, LOGIN_UUID_PATTERN).Groups[1].Value; //Find the UUID inside the HTML/JS
 
-                Logging.Log(Logging.LogLevel.DEBUG, "MyVUWAgent.getLoginParams", "Finished getting login parameters");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(MyVUWAgent)}.{nameof(GetLoginParams)}", "Finished getting login parameters");
 
                 return new Tuple<string, PersistentWebClient>(uuid, client); //Return UUID and client
             }
             catch (Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, "MyVUWAgent.getLoginParams", "Error getting login parameters.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(MyVUWAgent)}.{nameof(GetLoginParams)}", "Error getting login parameters.", ex);
 
                 throw new WebException("Failed to load or parse MyVictoria login page.", ex);
             }
@@ -257,11 +257,11 @@ namespace AutoMarkCheck
          * <summary>Sets the term/year on MyVuw to the current year so the grades that show up are for this year.</summary>
          * <param name="client">Authenticated client to use to update the setting.</param>
          */
-        private static async Task setGradeYear(PersistentWebClient client)
+        private static async Task SetGradeYear(PersistentWebClient client)
         {
             try
             {
-                Logging.Log(Logging.LogLevel.DEBUG, "MyVUWAgent.setGradeYear", $"Started setting grade year to {DateTime.Now.Year}01.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(MyVUWAgent)}.{nameof(SetGradeYear)}", $"Started setting grade year to {DateTime.Now.Year}01.");
                 //The site wont change the setting until you browse to these urls
                 await client.Get(BASE_URL + HOME_PATH);
                 await client.Get(BASE_URL + MY_STUDY_PATH);
@@ -283,11 +283,11 @@ namespace AutoMarkCheck
                     { "TERMLIST", DateTime.Now.Year + "01" },
                 });
 
-                Logging.Log(Logging.LogLevel.INFO, "MyVUWAgent.setGradeYear", $"Grade year has been successfully set to {DateTime.Now.Year}01.");
+                Logging.Log(Logging.LogLevel.INFO, $"{nameof(MyVUWAgent)}.{nameof(SetGradeYear)}", $"Grade year has been successfully set to {DateTime.Now.Year}01.");
             }
             catch (Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, "MyVUWAgent.setGradeYear", $"Failed to set grade year to {DateTime.Now.Year}01.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(MyVUWAgent)}.{nameof(SetGradeYear)}", $"Failed to set grade year to {DateTime.Now.Year}01.", ex);
             }
         }
     }

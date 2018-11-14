@@ -11,7 +11,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static AutoMarkCheck.CredentialManager;
 
 namespace AutoMarkCheck
 {
@@ -24,7 +23,7 @@ namespace AutoMarkCheck
 
         private async void button1_Click(object sender, EventArgs e)
         {
-            var creds = GetCredentials();
+            var creds = CredentialManager.GetCredentials();
             if (creds == null)
             {
                 MessageBox.Show("No creds");
@@ -32,8 +31,9 @@ namespace AutoMarkCheck
             }
             try
             {
-                var grades = await MyVUWAgent.GetGrades(creds);
-                MessageBox.Show("grade count: " + grades.Count);
+                var courses = await MyVUWAgent.GetGrades(creds);
+                await ServerAgent.ReportGrades(courses, "coolHost", creds);
+                MessageBox.Show("grade count: " + courses.Count);
             }
             catch (Exception ex)
             {
@@ -41,21 +41,14 @@ namespace AutoMarkCheck
             }
         }
 
-        private async void MainForm_Load(object sender, EventArgs e)
+        private void MainForm_Load(object sender, EventArgs e)
         {
-            PersistentWebClient client = new PersistentWebClient();
-            await client.Get("https://cloudflare.com");
-            client.DisplayCookies();
-            await client.Get("https://cloudflare.com");
-            client.DisplayCookies();
-            client.ClearCookies();
-            await client.Get("https://cloudflare.com");
-            client.DisplayCookies();
             
-
-            //PersistentWebClient client = new PersistentWebClient();
-            //string html = await client.Get("https://my.vuw.ac.nz");
-            //client.DisplayHTML(html);
+            //List<CourseInfo> courses = new List<CourseInfo>();
+            //courses.Add(new CourseInfo { CRN = "123456", Subject = "COMP", Course = "112", CourseTitle = "TItle goes here", Grade = "A+" });
+            //courses.Add(new CourseInfo { CRN = "123445", Subject = "CGRA", Course = "151", CourseTitle = "TItle goes here", Grade = "A+" });
+            //courses.Add(new CourseInfo { CRN = "123445", Subject = "CYBR", Course = "171", CourseTitle = "TItle goes here", Grade = "" });
+            //Clipboard.SetText(ServerAgent.serializeData(courses, "coolHost"));
         }
     }
 }

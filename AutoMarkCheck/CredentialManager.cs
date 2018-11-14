@@ -121,7 +121,7 @@ namespace AutoMarkCheck
 
                 if (!myVuwCredentials.Load() || !discordCredentials.Load())
                 {
-                    Logging.Log(Logging.LogLevel.WARNING, "CredentialManager.GetCredentials", "There are no credentials saved for AutoMarkCheck.");
+                    Logging.Log(Logging.LogLevel.WARNING, $"{nameof(CredentialManager)}.{nameof(GetCredentials)}", "There are no credentials saved for AutoMarkCheck.");
                     return null; //If loading fails
                 }
 
@@ -131,13 +131,13 @@ namespace AutoMarkCheck
                     myVuwCredentials.SecurePassword,
                     discordCredentials.SecurePassword);
 
-                Logging.Log(Logging.LogLevel.DEBUG, "CredentialManager.GetCredentials", "Successfully got credentials from the credential store.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(CredentialManager)}.{nameof(GetCredentials)}", "Successfully got credentials from the credential store.");
 
                 return creds;
             }
             catch(Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, "CredentialManager.GetCredentials", "Failed to get credentials from the credential store.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(CredentialManager)}.{nameof(GetCredentials)}", "Failed to get credentials from the credential store.", ex);
 
                 return null;
             }
@@ -173,11 +173,11 @@ namespace AutoMarkCheck
                     Description = "Discord token for AutoMarkCheck bot."
                 }.Save();
 
-                Logging.Log(Logging.LogLevel.INFO, "CredentialManager.SetCredentials", "New credentials saved to the credential store.");
+                Logging.Log(Logging.LogLevel.INFO, $"{nameof(CredentialManager)}.{nameof(SetCredentials)}", "New credentials saved to the credential store.");
             }
             catch(Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, "CredentialManager.SetCredentials", "Failed to save new credentials to the credential store.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(CredentialManager)}.{nameof(SetCredentials)}", "Failed to save new credentials to the credential store.", ex);
             }
         }
 
@@ -193,13 +193,13 @@ namespace AutoMarkCheck
                 bool deleted = myVuwCredentials.Delete() && discordCredentials.Delete();
 
                 if(deleted)
-                    Logging.Log(Logging.LogLevel.WARNING, "CredentialManager.DeleteCredentials", "One of the credentials may have not been deleted.");
+                    Logging.Log(Logging.LogLevel.WARNING, $"{nameof(CredentialManager)}.{nameof(DeleteCredentials)}", "One of the credentials may have not been deleted.");
                 else
-                    Logging.Log(Logging.LogLevel.INFO, "CredentialManager.DeleteCredentials", "Credentials successfully delete from the credential store.");
+                    Logging.Log(Logging.LogLevel.INFO, $"{nameof(CredentialManager)}.{nameof(DeleteCredentials)}", "Credentials successfully delete from the credential store.");
             }
             catch(Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, "CredentialManager.DeleteCredentials", "Failed to delete credentials from the credential store.");
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(CredentialManager)}.{nameof(DeleteCredentials)}", "Failed to delete credentials from the credential store.", ex);
             }
         }
     }

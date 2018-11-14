@@ -54,8 +54,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AutoMarkCheck.cs" />
     <Compile Include="CredentialManager.cs" />
-    <Compile Include="HomeAgent.cs" />
+    <Compile Include="ServerAgent.cs" />
     <Compile Include="Logging.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
