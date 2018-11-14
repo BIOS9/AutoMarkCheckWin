@@ -13,9 +13,13 @@ namespace AutoMarkCheck
      */
     public class CredentialManager
     {
+#if DEBUG
+        private const string VUW_CREDENTIAL_STORE_TARGET = "AutoMarkCheckVUWDebug";
+        private const string DISCORD_CREDENTIAL_STORE_TARGET = "AutoMarkCheckDiscordDebug";
+#else
         private const string VUW_CREDENTIAL_STORE_TARGET = "AutoMarkCheckVUW";
         private const string DISCORD_CREDENTIAL_STORE_TARGET = "AutoMarkCheckDiscord";
-
+#endif
         /**
          * <summary>Credential class to store credentials for MyVUW and the Discord bot</summary>
          * <seealso cref="CredentialManager"/>

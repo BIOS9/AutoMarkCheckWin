@@ -48,6 +48,42 @@ namespace AutoMatkCheckTesting
             Assert.AreEqual(escapedLength, cred2.EscapedBotTokenSize, "Escaped bot token length incorrect for SecureString initialized MarkCredentials.");
         }
 
+        [TestMethod]
+        public void CredentialSavingLoading()
+        {
+            string username = RandomString(10);
+            string password = RandomString(10);
+            string token = RandomString(10);
+            MarkCredentials cred1 = new MarkCredentials(username, password, token);
+            SetCredentials(cred1);
+            MarkCredentials cred2 = GetCredentials();
+            Assert.AreEqual(cred1.Username, cred2.Username, "Saved and loaded username does not match.");
+            Assert.AreEqual(ToStr(cred1.Password), ToStr(cred2.Password), "Saved and loaded password does not match.");
+            Assert.AreEqual(ToStr(cred1.BotToken), ToStr(cred2.BotToken), "Saved and loaded bot token does not match.");
+        }
+
+        [TestMethod]
+        public void CredentialDeleting()
+        {
+            string username = RandomString(10);
+            string password = RandomString(10);
+            string token = RandomString(10);
+            MarkCredentials cred1 = new MarkCredentials(username, password, token);
+            SetCredentials(cred1);
+            DeleteCredentials();
+            MarkCredentials cred2 = GetCredentials();
+            Assert.IsNull(cred2, "Credentials still remain in store after deletion.");
+        }
+
+        //Creates random string for testing
+        public static string RandomString(int length)
+        {
+            Random random = new Random();
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
         //Converts secure string to insecure string for testing
         string ToStr(SecureString value)
         {
