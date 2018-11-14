@@ -26,7 +26,7 @@ namespace AutoMarkCheck
          */
         public class MarkCredentials
         {
-            public readonly static Encoding CredentialEncoding = Encoding.ASCII;
+            public readonly static Encoding CredentialEncoding = Encoding.UTF8;
             public string Username;
             public SecureString Password = new SecureString();
             public SecureString BotToken = new SecureString();
