@@ -104,6 +104,7 @@
             this.MinimizeBox = false;
             this.Name = "MainForm";
             this.Text = "Auto Mark Check";
+            this.Load += new System.EventHandler(this.MainForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

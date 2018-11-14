@@ -4,13 +4,14 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
+using System.Windows.Forms;
 
 namespace AutoMarkCheck
 {
     /**
      * <summary>Manages credentials used by the AutoMarkCheck bot.</summary>
      */
-    class CredentialManager
+    public class CredentialManager
     {
         private const string VUW_CREDENTIAL_STORE_TARGET = "AutoMarkCheckVUW";
         private const string DISCORD_CREDENTIAL_STORE_TARGET = "AutoMarkCheckDiscord";
@@ -52,12 +53,50 @@ namespace AutoMarkCheck
                 Password = password;
                 BotToken = botToken;
 
+                //Calculate password length
                 IntPtr passwordPtr = Marshal.SecureStringToBSTR(password); //Convert SecureString password to BSTR and get the pointer
-
-
-                foreach(char c in password)
+                try
                 {
+                    byte b = 1;
+                    int i = 0;
 
+                    while (true) //Loop over characters in the BSTR
+                    {
+                        b = Marshal.ReadByte(passwordPtr, i);
+                        if (b == 0) break; //If terminator character '\0' is hit exit loop
+
+                        string escapedChar = Uri.EscapeDataString(((char)b).ToString()); //Must be a string because the escaped character can be more than 1 character long eg %7
+                        EscapedPasswordSize += CredentialEncoding.GetByteCount(escapedChar); //Add the length to the credential length
+
+                        i = i + 2;  // BSTR is unicode and occupies 2 bytes
+                    }
+                }
+                finally
+                {
+                    Marshal.ZeroFreeBSTR(passwordPtr); //Securely clear password BSTR from memory
+                }
+
+                //Calculate token length
+                IntPtr tokenPtr = Marshal.SecureStringToBSTR(BotToken); //Convert SecureString token to BSTR and get the pointer
+                try
+                {
+                    byte b = 1;
+                    int i = 0;
+
+                    while (true) //Loop over characters in the BSTR
+                    {
+                        b = Marshal.ReadByte(passwordPtr, i);
+                        if (b == 0) break; //If terminator character '\0' is hit exit loop
+
+                        string escapedChar = Uri.EscapeDataString(((char)b).ToString()); //Must be a string because the escaped character can be more than 1 character long eg %7
+                        EscapedBotTokenSize += CredentialEncoding.GetByteCount(escapedChar); //Add the length to the credential length
+
+                        i = i + 2;  // BSTR is unicode and occupies 2 bytes
+                    }
+                }
+                finally
+                {
+                    Marshal.ZeroFreeBSTR(tokenPtr); //Securely clear password BSTR from memory
                 }
             }
 

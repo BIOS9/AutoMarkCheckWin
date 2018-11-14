@@ -41,11 +41,9 @@ namespace AutoMarkCheck
             {
                 Tuple<string, CookieCollection> loginParams = await GetLoginParams();
 
-                string password = Uri.EscapeDataString(SecureStringToString(credentials.Password));
-
                 byte[] uuidData = Encoding.ASCII.GetBytes("uuid=" + loginParams.Item1);
                 byte[] userData = Encoding.ASCII.GetBytes("&user=" + credentials.Username);
-                byte[] passData = Encoding.ASCII.GetBytes("&pass=" );
+                byte[] passData = Encoding.ASCII.GetBytes("&pass=");
                 string postdata = "pass=aaa&user=asdasdas&uuid=" + loginParams.Item1;
                 var data = Encoding.ASCII.GetBytes(postdata);
 
@@ -58,9 +56,7 @@ namespace AutoMarkCheck
 
                 using (Stream stream = await request.GetRequestStreamAsync())
                 {
-                    byte[] uuidData = Encoding.ASCII.GetBytes("uuid=" + loginParams.Item1);
-                    await stream.WriteAsync(e)
-                    await stream.WriteAsync(data, 0, data.Length);
+
                 }
 
                 using (HttpWebResponse response = await request.GetResponseAsync() as HttpWebResponse)
