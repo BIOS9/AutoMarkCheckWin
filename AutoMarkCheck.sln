@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoMarkCheck", "AutoMarkCheck\AutoMarkCheck.csproj", "{808F538E-19CE-424D-9B3E-AC2397EE07EF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoMatkCheckTesting", "AutoMatkCheckTesting\AutoMatkCheckTesting.csproj", "{590327A7-8E92-4D57-A0D4-DE619F86BB31}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{808F538E-19CE-424D-9B3E-AC2397EE07EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{808F538E-19CE-424D-9B3E-AC2397EE07EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{808F538E-19CE-424D-9B3E-AC2397EE07EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{590327A7-8E92-4D57-A0D4-DE619F86BB31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{590327A7-8E92-4D57-A0D4-DE619F86BB31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{590327A7-8E92-4D57-A0D4-DE619F86BB31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{590327A7-8E92-4D57-A0D4-DE619F86BB31}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

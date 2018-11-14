@@ -1,6 +1,9 @@
 ﻿using CredentialManagement;
+using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security;
+using System.Text;
 
 namespace AutoMarkCheck
 {
@@ -18,9 +21,12 @@ namespace AutoMarkCheck
          */
         public class MarkCredentials
         {
+            public readonly static Encoding CredentialEncoding = Encoding.ASCII;
             public string Username;
             public SecureString Password = new SecureString();
             public SecureString BotToken = new SecureString();
+            public int EscapedPasswordSize;
+            public int EscapedBotTokenSize;
 
             #region Constructors
 
@@ -31,6 +37,13 @@ namespace AutoMarkCheck
                 Username = username;
                 password.ToList().ForEach(x => Password.AppendChar(x));
                 botToken.ToList().ForEach(x => BotToken.AppendChar(x));
+
+                //Calculate the size in bytes of the escaped password and token so they can be used later for an HTTP request without persisting in memory as a string
+                string escapedPassword = Uri.EscapeDataString(password);
+                EscapedPasswordSize = CredentialEncoding.GetByteCount(escapedPassword);
+
+                string escapedToken = Uri.EscapeDataString(botToken);
+                EscapedBotTokenSize = CredentialEncoding.GetByteCount(escapedToken);
             }
 
             public MarkCredentials(string username, SecureString password, SecureString botToken)
@@ -38,6 +51,14 @@ namespace AutoMarkCheck
                 Username = username;
                 Password = password;
                 BotToken = botToken;
+
+                IntPtr passwordPtr = Marshal.SecureStringToBSTR(password); //Convert SecureString password to BSTR and get the pointer
+
+
+                foreach(char c in password)
+                {
+
+                }
             }
 
             #endregion
@@ -54,11 +75,11 @@ namespace AutoMarkCheck
             var discordCredentials = new Credential { Target = DISCORD_CREDENTIAL_STORE_TARGET };
 
             if (!myVuwCredentials.Load() || !discordCredentials.Load()) return null; //If loading fails
-            
+
             //Load credentials into MarkCredentials object
             var creds = new MarkCredentials(
-                myVuwCredentials.Username, 
-                myVuwCredentials.SecurePassword, 
+                myVuwCredentials.Username,
+                myVuwCredentials.SecurePassword,
                 discordCredentials.SecurePassword);
 
             return creds;
@@ -72,7 +93,8 @@ namespace AutoMarkCheck
         public static void SetCredentials(MarkCredentials credentials)
         {
             //Create and save MyVictoria credential object
-            var myVuwCredentials = new Credential {
+            var myVuwCredentials = new Credential
+            {
                 Target = VUW_CREDENTIAL_STORE_TARGET,
                 PersistanceType = PersistanceType.LocalComputer,
                 Username = credentials.Username,
@@ -82,7 +104,8 @@ namespace AutoMarkCheck
             }.Save();
 
             //Create and save Discord bot credential object
-            var discordCredentials = new Credential {
+            var discordCredentials = new Credential
+            {
                 Target = DISCORD_CREDENTIAL_STORE_TARGET,
                 PersistanceType = PersistanceType.LocalComputer,
                 SecurePassword = credentials.BotToken,
