@@ -5,6 +5,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AutoMarkCheck;
 using static AutoMarkCheck.CredentialManager;
 using System.Runtime.InteropServices;
+using Newtonsoft.Json;
+using System.Windows.Forms;
 
 namespace AutoMatkCheckTesting
 {
@@ -38,14 +40,17 @@ namespace AutoMatkCheckTesting
             str.ToList().ForEach(x => secureStr.AppendChar(x));
 
             int escapedLength = MarkCredentials.CredentialEncoding.GetByteCount(Uri.EscapeDataString(str));
+            string jsonString = JsonConvert.ToString(str).Remove(0, 1);
+            jsonString = jsonString.Remove(jsonString.Length - 1, 1);
+            int escapedTokenLength = MarkCredentials.CredentialEncoding.GetByteCount(jsonString);
 
             MarkCredentials cred1 = new MarkCredentials("", str, str);
             Assert.AreEqual(escapedLength, cred1.EscapedPasswordSize, "Escaped password length incorrect for string initialized MarkCredentials.");
-            Assert.AreEqual(escapedLength, cred1.EscapedBotTokenSize, "Escaped bot token length incorrect for string initialized MarkCredentials.");
+            Assert.AreEqual(escapedTokenLength, cred1.EscapedBotTokenSize, "Escaped bot token length incorrect for string initialized MarkCredentials.");
 
             MarkCredentials cred2 = new MarkCredentials("", secureStr, secureStr);
             Assert.AreEqual(escapedLength, cred2.EscapedPasswordSize, "Escaped password length incorrect for SecureString initialized MarkCredentials.");
-            Assert.AreEqual(escapedLength, cred2.EscapedBotTokenSize, "Escaped bot token length incorrect for SecureString initialized MarkCredentials.");
+            Assert.AreEqual(escapedTokenLength, cred2.EscapedBotTokenSize, "Escaped bot token length incorrect for SecureString initialized MarkCredentials.");
         }
 
         [TestMethod]

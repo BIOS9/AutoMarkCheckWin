@@ -17,7 +17,7 @@ namespace AutoMarkCheck
     public class ServerAgent
     {
         private const string TOKEN_PLACEHOLDER = "|[tokenplaceholder]|";
-        private string USER_AGENT = $"Auto Mark Check {Environment.OSVersion.Platform} {Environment.OSVersion.VersionString}/1.0";
+        private string USER_AGENT = $"Auto Mark Check {Environment.OSVersion.Platform} {Environment.OSVersion.VersionString}/1.0"; //User agent will contain OS name and version
 
         /**
          * <summary>Report courses and grades to the bot server.</summary>
@@ -83,7 +83,13 @@ namespace AutoMarkCheck
             string beforeToken = jsonData.Substring(0, jsonData.IndexOf(TOKEN_PLACEHOLDER));
             string afterToken = jsonData.Substring(jsonData.IndexOf(TOKEN_PLACEHOLDER) + TOKEN_PLACEHOLDER.Length);
 
+            byte[] beforeTokenBytes = CredentialManager.MarkCredentials.CredentialEncoding.GetBytes(beforeToken);
+            byte[] afterTokenBytes = CredentialManager.MarkCredentials.CredentialEncoding.GetBytes(afterToken);
+
             
+            MessageBox.Show(beforeToken);
+            
+            MessageBox.Show(afterToken);
 
             Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Report upload finished.");
         }

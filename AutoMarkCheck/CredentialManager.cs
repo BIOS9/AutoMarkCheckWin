@@ -1,4 +1,5 @@
 ﻿using CredentialManagement;
+using Newtonsoft.Json;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -47,8 +48,11 @@ namespace AutoMarkCheck
                 string escapedPassword = Uri.EscapeDataString(password);
                 EscapedPasswordSize = CredentialEncoding.GetByteCount(escapedPassword);
 
-                string escapedToken = Uri.EscapeDataString(botToken);
-                EscapedBotTokenSize = CredentialEncoding.GetByteCount(escapedToken);
+                //Bot token doesn't need to be URI escaped because it isnt sent as a POST FORM its sent as POST JSON
+                string jsonString = JsonConvert.ToString(botToken); //Token is uploaded in JSON so it must be escaped in both json then URI format
+                jsonString = jsonString.Remove(0, 1); //To remove the leading "
+                jsonString = jsonString.Remove(jsonString.Length - 1, 1); //To remove the trailing "
+                EscapedBotTokenSize = CredentialEncoding.GetByteCount(jsonString);
             }
 
             public MarkCredentials(string username, SecureString password, SecureString botToken)
@@ -92,8 +96,10 @@ namespace AutoMarkCheck
                         b = Marshal.ReadByte(passwordPtr, i);
                         if (b == 0) break; //If terminator character '\0' is hit exit loop
 
-                        string escapedChar = Uri.EscapeDataString(((char)b).ToString()); //Must be a string because the escaped character can be more than 1 character long eg %7
-                        EscapedBotTokenSize += CredentialEncoding.GetByteCount(escapedChar); //Add the length to the credential length
+                        string jsonString = JsonConvert.ToString((char)b); //Token is uploaded in JSON so it must be escaped in both json then URI format
+                        jsonString = jsonString.Remove(0, 1); //To remove the leading "
+                        jsonString = jsonString.Remove(jsonString.Length - 1, 1); //To remove the trailing "
+                        EscapedBotTokenSize += CredentialEncoding.GetByteCount(jsonString); //Add the length to the credential length
 
                         i = i + 2;  // BSTR is unicode and occupies 2 bytes
                     }

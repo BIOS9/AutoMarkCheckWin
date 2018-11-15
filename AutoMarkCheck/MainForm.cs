@@ -11,6 +11,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static AutoMarkCheck.MyVUWAgent;
 
 namespace AutoMarkCheck
 {
@@ -31,9 +32,9 @@ namespace AutoMarkCheck
             }
             try
             {
-                var courses = await MyVUWAgent.GetGrades(creds);
-                await ServerAgent.ReportGrades(courses, "coolHost", creds);
-                MessageBox.Show("grade count: " + courses.Count);
+                //var courses = await MyVUWAgent.GetGrades(creds);
+                //await ServerAgent.ReportGrades(courses, "coolHost", creds);
+                //MessageBox.Show("grade count: " + courses.Count);
             }
             catch (Exception ex)
             {
@@ -43,12 +44,12 @@ namespace AutoMarkCheck
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            
-            //List<CourseInfo> courses = new List<CourseInfo>();
-            //courses.Add(new CourseInfo { CRN = "123456", Subject = "COMP", Course = "112", CourseTitle = "TItle goes here", Grade = "A+" });
-            //courses.Add(new CourseInfo { CRN = "123445", Subject = "CGRA", Course = "151", CourseTitle = "TItle goes here", Grade = "A+" });
-            //courses.Add(new CourseInfo { CRN = "123445", Subject = "CYBR", Course = "171", CourseTitle = "TItle goes here", Grade = "" });
-            //Clipboard.SetText(ServerAgent.serializeData(courses, "coolHost"));
+
+            List<CourseInfo> courses = new List<CourseInfo>();
+            courses.Add(new CourseInfo { CRN = "123456", Subject = "COMP", Course = "112", CourseTitle = "TItle goes here", Grade = "A+" });
+            courses.Add(new CourseInfo { CRN = "123445", Subject = "CGRA", Course = "151", CourseTitle = "TItle goes here", Grade = "A+" });
+            courses.Add(new CourseInfo { CRN = "123445", Subject = "CYBR", Course = "171", CourseTitle = "TItle goes here", Grade = "" });
+            ServerAgent.ReportGrades(courses, "coolHost", null).Wait();
         }
     }
 }
