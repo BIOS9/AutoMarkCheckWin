@@ -1,0 +1,2 @@
+﻿# AutoMarkCheckWin
+AutoMarkCheckWin is a Windows program that downloads marks from the university courses page and parses the grades to determine if they have come out yet, it then sends the status of each grade to a server running a Discord bot that will notify users when the grades come out for a course.
