@@ -78,20 +78,6 @@ namespace AutoMarkCheck
             }
         }
 
-        static string ToStr(SecureString value)
-        {
-            IntPtr valuePtr = IntPtr.Zero;
-            try
-            {
-                valuePtr = Marshal.SecureStringToGlobalAllocUnicode(value);
-                return Marshal.PtrToStringUni(valuePtr);
-            }
-            finally
-            {
-                Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
-            }
-        }
-
         /**
          * <summary>Upload JSON serialized report to the bot server.</summary>
          * <param name="jsonData">Json data containing the report.</param>
@@ -202,8 +188,8 @@ namespace AutoMarkCheck
                     jsonObject.error = error;
 
                 TimeSpan uptime = (DateTime.Now - Process.GetCurrentProcess().StartTime);
-                string dayStr = uptime.Days == 1 ? "day" : "days";
-                jsonObject.uptime = uptime.ToString($"d' {dayStr}, 'hh':'mm':'ss");
+                string dayStr = uptime.Days == 1 ? "day" : "days"; //If day count is 1, use "day" instead of "days"
+                jsonObject.uptime = uptime.ToString($"d' {dayStr}, 'hh':'mm':'ss"); //Format "1 day, 06:22:33" or "2 days, 20:37:09"
 
                 jsonObject.hostname = hostanme;
 
