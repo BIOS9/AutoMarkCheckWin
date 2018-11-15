@@ -176,6 +176,7 @@ namespace AutoMarkCheck
                     PersistanceType = PersistanceType.LocalComputer,
                     SecurePassword = credentials.BotToken,
                     Type = CredentialType.Generic,
+                    Username = "Discord",
                     Description = "Discord token for AutoMarkCheck bot."
                 }.Save();
 

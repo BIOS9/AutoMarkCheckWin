@@ -84,7 +84,7 @@ namespace AutoMarkCheck
          */
         private static async Task Upload(string jsonData, CredentialManager.MarkCredentials credentials)
         {
-            Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Report upload started.");
+            Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(Upload)}", "Report upload started.");
 
             string beforeToken = jsonData.Substring(0, jsonData.IndexOf(TOKEN_PLACEHOLDER));
             string afterToken = jsonData.Substring(jsonData.IndexOf(TOKEN_PLACEHOLDER) + TOKEN_PLACEHOLDER.Length);
@@ -107,6 +107,7 @@ namespace AutoMarkCheck
             request.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip, deflate");
             request.Headers.Add(HttpRequestHeader.CacheControl, "no-cache");
 
+            Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(Upload)}", "Starting reuqest.");
             using (Stream stream = await request.GetRequestStreamAsync())
             {
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(Upload)}", "Writing login credentials.");

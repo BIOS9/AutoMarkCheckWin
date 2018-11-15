@@ -21,7 +21,7 @@ namespace AutoMarkCheck
         }
 
         public static LogLevel LoggingLevel = LogLevel.DEBUG;
-
+        
         public static void Log(LogLevel level, string source, string message, Exception exception = null)
         {
             //Console.Write($"[{DateTime.Now.ToString()}] [{level.ToString()}] <{source}> \"{message}\"");
@@ -43,7 +43,7 @@ namespace AutoMarkCheck
             tempForm.richTextBox1.AppendText($"[{DateTime.Now.ToString()}] [{level.ToString()}] <{source}> \"{message}\"");
             if (exception != null)
             {
-                tempForm.richTextBox1.AppendText(" Exception: " + exception.Message + " - " + exception.StackTrace);
+                tempForm.richTextBox1.AppendText(" Exception: \"" + exception.Message + " - " + exception.StackTrace + "\"");
             }
             tempForm.richTextBox1.AppendText(Environment.NewLine);
         }

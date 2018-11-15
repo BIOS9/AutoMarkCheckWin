@@ -43,11 +43,12 @@ namespace AutoMarkCheck
             }
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
+        private async void MainForm_Load(object sender, EventArgs e)
         {
             var creds = CredentialManager.GetCredentials();
             if (creds == null)
             {
+                CredentialManager.SetCredentials(new CredentialManager.MarkCredentials("test", "test", "token"));
                 MessageBox.Show("No creds");
                 return;
             }
@@ -56,7 +57,7 @@ namespace AutoMarkCheck
             courses.Add(new CourseInfo { CRN = "123456", Subject = "COMP", Course = "112", CourseTitle = "TItle goes here", Grade = "A+" });
             courses.Add(new CourseInfo { CRN = "123445", Subject = "COMP", Course = "103", CourseTitle = "TItle goes here", Grade = "A+" });
             courses.Add(new CourseInfo { CRN = "123445", Subject = "CYBR", Course = "171", CourseTitle = "TItle goes here", Grade = "A+" });
-            ServerAgent.ReportGrades(courses, "CoolHost 😎", creds).Wait();
+            var success = await ServerAgent.ReportGrades(courses, "CoolHost 😎", creds);
         }
     }
 }
