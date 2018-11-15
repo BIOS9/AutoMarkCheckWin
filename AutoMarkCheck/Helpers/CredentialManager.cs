@@ -129,7 +129,7 @@ namespace AutoMarkCheck.Helpers
 
                 if (!myVuwCredentials.Load() || !discordCredentials.Load())
                 {
-                    Logging.Log(Logging.LogLevel.WARNING, $"{nameof(CredentialManager)}.{nameof(GetCredentials)}", "There are no credentials saved for AutoMarkCheck.");
+                    Logging.Log(Logging.LogLevel.WARNING, $"{nameof(Helpers)}.{nameof(CredentialManager)}.{nameof(GetCredentials)}", "There are no credentials saved for AutoMarkCheck.");
                     return null; //If loading fails
                 }
 
@@ -139,13 +139,13 @@ namespace AutoMarkCheck.Helpers
                     myVuwCredentials.SecurePassword,
                     discordCredentials.SecurePassword);
 
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(CredentialManager)}.{nameof(GetCredentials)}", "Successfully got credentials from the credential store.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(Helpers)}.{nameof(CredentialManager)}.{nameof(GetCredentials)}", "Successfully got credentials from the credential store.");
 
                 return creds;
             }
             catch(Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(CredentialManager)}.{nameof(GetCredentials)}", "Failed to get credentials from the credential store.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(Helpers)}.{nameof(CredentialManager)}.{nameof(GetCredentials)}", "Failed to get credentials from the credential store.", ex);
 
                 return null;
             }
@@ -182,11 +182,11 @@ namespace AutoMarkCheck.Helpers
                     Description = "Discord token for AutoMarkCheck bot."
                 }.Save();
 
-                Logging.Log(Logging.LogLevel.INFO, $"{nameof(CredentialManager)}.{nameof(SetCredentials)}", "New credentials saved to the credential store.");
+                Logging.Log(Logging.LogLevel.INFO, $"{nameof(Helpers)}.{nameof(CredentialManager)}.{nameof(SetCredentials)}", "New credentials saved to the credential store.");
             }
             catch(Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(CredentialManager)}.{nameof(SetCredentials)}", "Failed to save new credentials to the credential store.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(Helpers)}.{nameof(CredentialManager)}.{nameof(SetCredentials)}", "Failed to save new credentials to the credential store.", ex);
             }
         }
 
@@ -202,13 +202,13 @@ namespace AutoMarkCheck.Helpers
                 bool deleted = myVuwCredentials.Delete() && discordCredentials.Delete();
 
                 if(deleted)
-                    Logging.Log(Logging.LogLevel.WARNING, $"{nameof(CredentialManager)}.{nameof(DeleteCredentials)}", "One of the credentials may have not been deleted.");
+                    Logging.Log(Logging.LogLevel.WARNING, $"{nameof(Helpers)}.{nameof(CredentialManager)}.{nameof(DeleteCredentials)}", "One of the credentials may have not been deleted.");
                 else
-                    Logging.Log(Logging.LogLevel.INFO, $"{nameof(CredentialManager)}.{nameof(DeleteCredentials)}", "Credentials successfully delete from the credential store.");
+                    Logging.Log(Logging.LogLevel.INFO, $"{nameof(Helpers)}.{nameof(CredentialManager)}.{nameof(DeleteCredentials)}", "Credentials successfully delete from the credential store.");
             }
             catch(Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(CredentialManager)}.{nameof(DeleteCredentials)}", "Failed to delete credentials from the credential store.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(Helpers)}.{nameof(CredentialManager)}.{nameof(DeleteCredentials)}", "Failed to delete credentials from the credential store.", ex);
             }
         }
     }

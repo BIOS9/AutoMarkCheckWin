@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutoMarkCheck.cs" />
+    <Compile Include="Grades\StudentRecordGradeSource.cs" />
     <Compile Include="Helpers\CredentialManager.cs" />
     <Compile Include="Grades\CourseInfo.cs" />
     <Compile Include="Grades\IGradeSource.cs" />
