@@ -52,12 +52,11 @@ namespace AutoMarkCheck
                 MessageBox.Show("No creds");
                 return;
             }
-            List<CourseInfo> courses = new List<CourseInfo>();
-            courses.Add(new CourseInfo { CRN = "123445", Subject = "CGRA", Course = "151", CourseTitle = "TItle goes here", Grade = "" });
-            courses.Add(new CourseInfo { CRN = "123456", Subject = "COMP", Course = "112", CourseTitle = "TItle goes here", Grade = "A+" });
-            courses.Add(new CourseInfo { CRN = "123445", Subject = "COMP", Course = "103", CourseTitle = "TItle goes here", Grade = "A+" });
-            courses.Add(new CourseInfo { CRN = "123445", Subject = "CYBR", Course = "171", CourseTitle = "TItle goes here", Grade = "A+" });
-            var success = await ServerAgent.ReportGrades(courses, "CoolHost 😎", creds);
+            List<CourseInfo> courses = await MyVUWAgent.GetGrades(creds);
+            if (courses.Count > 0)
+            {
+                var success = await ServerAgent.ReportGrades(courses, "CoolHost 😎", creds);
+            }
         }
     }
 }

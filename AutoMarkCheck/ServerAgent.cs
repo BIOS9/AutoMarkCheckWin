@@ -42,7 +42,7 @@ namespace AutoMarkCheck
                 Clipboard.SetText(jsonData);
                 await Upload(jsonData, credentials);
 
-                Logging.Log(Logging.LogLevel.INFO, $"{nameof(ServerAgent)}.{nameof(ReportError)}", "Successfully reported grades to bot server.");
+                Logging.Log(Logging.LogLevel.INFO, $"{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Successfully reported grades to bot server.");
                 return true;
             }
             catch (Exception ex)
@@ -63,7 +63,7 @@ namespace AutoMarkCheck
         {
             try
             {
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Error report started.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(ReportError)}", "Error report started.");
 
                 string jsonData = SerializeData(null, hostname, error);
                 await Upload(jsonData, credentials);
