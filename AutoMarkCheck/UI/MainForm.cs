@@ -44,10 +44,14 @@ namespace AutoMarkCheck.UI
                 MessageBox.Show("No creds");
                 return;
             }
-            List<CourseInfo> courses = await MyVuwGradeSource.GetGrades(creds);
+
+            IGradeSource gradeSource = new MyVuwGradeSource(creds);
+            ServerAgent serverAgent = new ServerAgent(creds, "CoolHost 😎");
+            List<CourseInfo> courses = await gradeSource.GetGrades();
+
             if (courses.Count > 0)
             {
-                var success = await ServerAgent.ReportGrades(courses, "CoolHost 😎", creds);
+                var success = await serverAgent.ReportGrades(courses);
             }
         }
     }

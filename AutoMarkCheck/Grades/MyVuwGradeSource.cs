@@ -34,22 +34,35 @@ namespace AutoMarkCheck.Grades
 
         private readonly static TimeSpan YEAR_SET_INTERVAL = TimeSpan.FromHours(6); //Sets the year to the current year, just in case the user has an old year selected and the old results are coming up.
 
-        private static bool _setYearOnNext = false; //Whether to set the default grade year on the next request
-        private static DateTime _lastYearSet = DateTime.MinValue;
+        private bool _setYearOnNext = false; //Whether to set the default grade year on the next request
+        private DateTime _lastYearSet = DateTime.MinValue;
+        private MarkCredentials _credentials;
+
+        public MyVuwGradeSource(MarkCredentials credentials)
+        {
+            _credentials = credentials;
+        }
 
         /**
-         * <summary>Gets course grades from the MyVictoria website using the specified credentials.</summary>
-         * <param name="credentials">Credentials to use when fetching the grades.</param>
+         * <summary>Sets credentials used for authentication with MyVUW.</summary>
+         */
+        public void SetCredentials(MarkCredentials credentials)
+        {
+            _credentials = credentials;
+        }
+
+        /**
+         * <summary>Gets course grades from the MyVictoria website.</summary>
          * <returns>A list of <see cref="CourseInfo">CourseGrade</see> objects containing the grades for each course.</returns>
          * <exception cref="AuthenticationException">Thrown if the credentials are incorrect or login fails for another reason.</exception>
          */
-        public static async Task<List<CourseInfo>> GetGrades(MarkCredentials credentials)
+        public async Task<List<CourseInfo>> GetGrades()
         {
             try
             {
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetGrades)}", "Grade grab started.");
 
-                PersistentWebClient client = await Login(credentials); //Create logged in session
+                PersistentWebClient client = await Login(); //Create logged in session
 
                 if (_setYearOnNext || DateTime.Now - _lastYearSet > YEAR_SET_INTERVAL)
                 {
@@ -81,7 +94,7 @@ namespace AutoMarkCheck.Grades
             }
         }
 
-        private static List<CourseInfo> ParseGradeHtml(string html)
+        private List<CourseInfo> ParseGradeHtml(string html)
         {
             try
             {
@@ -118,11 +131,10 @@ namespace AutoMarkCheck.Grades
 
         /**
          * <summary>Uses the supplied credentials to login to the MyVictoria website and returns the session.</summary>
-         * <param name="credentials">Credentials to use when logging into MyVictoria.</param>
          * <returns>A <see cref="CookieCollection">CookieCollection</see> containing the cookies for the new logged in session.</returns>
          * <exception cref="AuthenticationException">Thrown when credentials are incorrect or the login has failed for another reason.</exception>
          */
-        private static async Task<PersistentWebClient> Login(MarkCredentials credentials)
+        private async Task<PersistentWebClient> Login()
         {
             try
             {
@@ -132,9 +144,9 @@ namespace AutoMarkCheck.Grades
 
                 //Put post data into byte arrays for easy upload through the request stream
                 byte[] uuidData = MarkCredentials.CredentialEncoding.GetBytes("uuid=" + loginParams.Item1);
-                byte[] userData = MarkCredentials.CredentialEncoding.GetBytes("&user=" + credentials.Username);
+                byte[] userData = MarkCredentials.CredentialEncoding.GetBytes("&user=" + _credentials.Username);
                 byte[] passData = MarkCredentials.CredentialEncoding.GetBytes("&pass=");
-                int dataLength = uuidData.Length + userData.Length + passData.Length + credentials.EscapedPasswordSize; //Calculate length of bytes
+                int dataLength = uuidData.Length + userData.Length + passData.Length + _credentials.EscapedPasswordSize; //Calculate length of bytes
 
                 //Create request
                 HttpWebRequest request = WebRequest.CreateHttp(BASE_URL + LOGIN_POST_PATH);
@@ -161,7 +173,7 @@ namespace AutoMarkCheck.Grades
                     await stream.WriteAsync(passData, 0, passData.Length);
 
                     //Write password to stream character by character
-                    IntPtr passwordPtr = Marshal.SecureStringToBSTR(credentials.Password); //Convert SecureString password to BSTR and get the pointer
+                    IntPtr passwordPtr = Marshal.SecureStringToBSTR(_credentials.Password); //Convert SecureString password to BSTR and get the pointer
                     try
                     {
                         byte b = 1;
@@ -219,7 +231,7 @@ namespace AutoMarkCheck.Grades
          * <summary>Gets session cookies and UUID created by MyVictoria website using a GET request, simulating someone loading the login page.</summary>
          * <returns>A tuple value containing the UUID as Item1 and the session cookies as Item2</returns>
          */
-        private static async Task<Tuple<string, PersistentWebClient>> GetLoginParams()
+        private async Task<Tuple<string, PersistentWebClient>> GetLoginParams()
         {
             try
             {
@@ -246,7 +258,7 @@ namespace AutoMarkCheck.Grades
          * <summary>Sets the term/year on MyVuw to the current year so the grades that show up are for this year.</summary>
          * <param name="client">Authenticated client to use to update the setting.</param>
          */
-        private static async Task SetGradeYear(PersistentWebClient client)
+        private async Task SetGradeYear(PersistentWebClient client)
         {
             try
             {
