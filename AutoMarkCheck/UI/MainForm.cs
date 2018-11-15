@@ -1,9 +1,11 @@
-﻿using System;
+﻿using AutoMarkCheck.Grades;
+using AutoMarkCheck.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using static AutoMarkCheck.MyVUWAgent;
+using static AutoMarkCheck.Grades.MyVuwGradeSource;
 
-namespace AutoMarkCheck
+namespace AutoMarkCheck.UI
 {
     public partial class MainForm : Form
     {
@@ -42,7 +44,7 @@ namespace AutoMarkCheck
                 MessageBox.Show("No creds");
                 return;
             }
-            List<CourseInfo> courses = await MyVUWAgent.GetGrades(creds);
+            List<CourseInfo> courses = await MyVuwGradeSource.GetGrades(creds);
             if (courses.Count > 0)
             {
                 var success = await ServerAgent.ReportGrades(courses, "CoolHost 😎", creds);

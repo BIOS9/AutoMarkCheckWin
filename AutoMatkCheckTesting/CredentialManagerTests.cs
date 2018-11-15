@@ -2,11 +2,9 @@
 using System.Linq;
 using System.Security;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using AutoMarkCheck;
 using static AutoMarkCheck.CredentialManager;
 using System.Runtime.InteropServices;
 using Newtonsoft.Json;
-using System.Windows.Forms;
 
 namespace AutoMatkCheckTesting
 {

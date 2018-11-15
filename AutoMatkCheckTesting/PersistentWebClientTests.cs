@@ -1,4 +1,5 @@
 ﻿using AutoMarkCheck;
+using AutoMarkCheck.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using System;

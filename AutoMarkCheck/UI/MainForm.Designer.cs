@@ -1,4 +1,4 @@
-﻿namespace AutoMarkCheck
+﻿namespace AutoMarkCheck.UI
 {
     partial class MainForm
     {

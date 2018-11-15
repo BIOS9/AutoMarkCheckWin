@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace AutoMarkCheck
+namespace AutoMarkCheck.Helpers
 {
     /**
      * <summary>Logging helper that supports multi level logging with sources and exceptions.</summary>
      */
     public class Logging
     {
-        public static MainForm tempForm;
+        public static UI.MainForm tempForm;
 
         public enum LogLevel
         {

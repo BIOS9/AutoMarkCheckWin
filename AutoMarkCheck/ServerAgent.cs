@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using AutoMarkCheck.Grades;
+using AutoMarkCheck.Helpers;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -8,7 +10,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static AutoMarkCheck.MyVUWAgent;
+using static AutoMarkCheck.Grades.MyVuwGradeSource;
 
 namespace AutoMarkCheck
 {

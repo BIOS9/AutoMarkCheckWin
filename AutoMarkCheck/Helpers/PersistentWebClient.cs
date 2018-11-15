@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace AutoMarkCheck
+namespace AutoMarkCheck.Helpers
 {
     /**
      * <summary>Web client that supports cookie persistence to allow logins and other session sensitive actions.</summary>
