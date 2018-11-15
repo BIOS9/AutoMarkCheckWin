@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,10 +33,17 @@ namespace AutoMarkCheck
             //}
             //Console.WriteLine();
 
+            Debug.Write($"[{DateTime.Now.ToString()}] [{level.ToString()}] <{source}> \"{message}\"");
+            if (exception != null)
+            {
+                Debug.Write(exception.Message);
+            }
+            Debug.WriteLine("");
+
             tempForm.richTextBox1.AppendText($"[{DateTime.Now.ToString()}] [{level.ToString()}] <{source}> \"{message}\"");
             if (exception != null)
             {
-                tempForm.richTextBox1.AppendText(" Exception: " + exception.Message);
+                tempForm.richTextBox1.AppendText(" Exception: " + exception.Message + " - " + exception.StackTrace);
             }
             tempForm.richTextBox1.AppendText(Environment.NewLine);
         }

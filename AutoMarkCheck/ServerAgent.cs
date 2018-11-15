@@ -38,7 +38,8 @@ namespace AutoMarkCheck
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Grade report started.");
 
                 string jsonData = SerializeData(courses, hostname);
-                //await Upload(jsonData, credentials);
+                Clipboard.SetText(jsonData);
+                await Upload(jsonData, credentials);
 
                 Logging.Log(Logging.LogLevel.INFO, $"{nameof(ServerAgent)}.{nameof(ReportError)}", "Successfully reported grades to bot server.");
                 return true;
@@ -91,6 +92,7 @@ namespace AutoMarkCheck
             //Calculate length of post JSON data
             byte[] beforeTokenBytes = CredentialManager.MarkCredentials.CredentialEncoding.GetBytes(beforeToken);
             byte[] afterTokenBytes = CredentialManager.MarkCredentials.CredentialEncoding.GetBytes(afterToken);
+
             int dataLength = beforeTokenBytes.Length + afterTokenBytes.Length + credentials.EscapedBotTokenSize;
 
             //Create request
@@ -170,27 +172,35 @@ namespace AutoMarkCheck
          */
         private static string SerializeData(List<CourseInfo> courses, string hostanme, string error = null)
         {
-            dynamic jsonObject = new JObject();
-
-            if (string.IsNullOrWhiteSpace(error))
+            try
             {
-                jsonObject.courses = new JObject();
-                foreach (CourseInfo info in courses)
-                    jsonObject.courses[info.Subject + info.Course] = !string.IsNullOrWhiteSpace(info.Grade);
+                dynamic jsonObject = new JObject();
+
+                if (string.IsNullOrWhiteSpace(error))
+                {
+                    jsonObject.courses = new JObject();
+                    foreach (CourseInfo info in courses)
+                        jsonObject.courses[info.Subject + info.Course] = !string.IsNullOrWhiteSpace(info.Grade);
+                }
+                else
+                    jsonObject.error = error;
+
+                TimeSpan uptime = (DateTime.Now - Process.GetCurrentProcess().StartTime);
+                string dayStr = uptime.Days == 1 ? "day" : "days";
+                jsonObject.uptime = uptime.ToString($"d' {dayStr}, 'hh':'mm':'ss");
+
+                jsonObject.hostname = hostanme;
+
+                //Using a place holder for the token so it can be injected into the upload stream to prevent storing the unencrypted token in memory.
+                jsonObject.token = TOKEN_PLACEHOLDER;
+
+                return JsonConvert.SerializeObject(jsonObject); //Convert object into JSON string.
             }
-            else
-                jsonObject.error = error;
-
-            TimeSpan uptime = (DateTime.Now - Process.GetCurrentProcess().StartTime);
-            //string dayStr = uptime.Days == 1 ? "day" : "days";
-            jsonObject.uptime = uptime.ToString($"d' days', 'hh':'mm':'ss");
-
-            jsonObject.hostname = hostanme;
-
-            //Using a place holder for the token so it can be injected into the upload stream to prevent storing the unencrypted token in memory.
-            jsonObject.token = TOKEN_PLACEHOLDER;
-
-            return JsonConvert.SerializeObject(jsonObject); //Convert object into JSON string.
+            catch(Exception ex)
+            {
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(ServerAgent)}.{nameof(SerializeData)}", "Failed to serialize report data.", ex);
+                throw new JsonSerializationException("JSON serialization failed.");
+            }
         }
     }
 }
