@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Security;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using static AutoMarkCheck.CredentialManager;
+using static AutoMarkCheck.Helpers.CredentialManager;
 using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 

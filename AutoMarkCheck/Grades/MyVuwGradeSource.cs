@@ -7,7 +7,7 @@ using System.Security.Authentication;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Html = HtmlAgilityPack;
-using static AutoMarkCheck.CredentialManager;
+using static AutoMarkCheck.Helpers.CredentialManager;
 using AutoMarkCheck.Helpers;
 
 namespace AutoMarkCheck.Grades

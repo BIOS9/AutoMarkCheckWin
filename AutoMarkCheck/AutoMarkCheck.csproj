@@ -31,6 +31,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>AutoMarkCheck.AutoMarkCheck</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="CredentialManagement, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\CredentialManagement.1.0.2\lib\net35\CredentialManagement.dll</HintPath>
@@ -55,7 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutoMarkCheck.cs" />
-    <Compile Include="CredentialManager.cs" />
+    <Compile Include="Helpers\CredentialManager.cs" />
     <Compile Include="Grades\CourseInfo.cs" />
     <Compile Include="Grades\IGradeSource.cs" />
     <Compile Include="ServerAgent.cs" />
@@ -68,7 +71,6 @@
     </Compile>
     <Compile Include="Grades\MyVuwGradeSource.cs" />
     <Compile Include="Helpers\PersistentWebClient.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="UI\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>

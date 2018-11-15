@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 
-namespace AutoMarkCheck
+namespace AutoMarkCheck.Helpers
 {
     /**
      * <summary>Manages credentials used by the AutoMarkCheck bot.</summary>
