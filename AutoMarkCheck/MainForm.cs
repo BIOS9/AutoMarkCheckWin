@@ -20,6 +20,7 @@ namespace AutoMarkCheck
         public MainForm()
         {
             InitializeComponent();
+            Logging.tempForm = this;
         }
 
         private async void button1_Click(object sender, EventArgs e)
@@ -46,10 +47,11 @@ namespace AutoMarkCheck
         {
 
             List<CourseInfo> courses = new List<CourseInfo>();
+            courses.Add(new CourseInfo { CRN = "123445", Subject = "CGRA", Course = "151", CourseTitle = "TItle goes here", Grade = "" });
             courses.Add(new CourseInfo { CRN = "123456", Subject = "COMP", Course = "112", CourseTitle = "TItle goes here", Grade = "A+" });
-            courses.Add(new CourseInfo { CRN = "123445", Subject = "CGRA", Course = "151", CourseTitle = "TItle goes here", Grade = "A+" });
-            courses.Add(new CourseInfo { CRN = "123445", Subject = "CYBR", Course = "171", CourseTitle = "TItle goes here", Grade = "" });
-            ServerAgent.ReportGrades(courses, "coolHost", null).Wait();
+            courses.Add(new CourseInfo { CRN = "123445", Subject = "COMP", Course = "103", CourseTitle = "TItle goes here", Grade = "A+" });
+            courses.Add(new CourseInfo { CRN = "123445", Subject = "CYBR", Course = "171", CourseTitle = "TItle goes here", Grade = "A+" });
+            ServerAgent.ReportGrades(courses, "CoolHost 😎", null).Wait();
         }
     }
 }

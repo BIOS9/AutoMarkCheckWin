@@ -171,7 +171,7 @@ namespace AutoMarkCheck
                     await stream.WriteAsync(userData, 0, userData.Length);
                     await stream.WriteAsync(passData, 0, passData.Length);
 
-                    //Write password to stream character by charactre
+                    //Write password to stream character by character
                     IntPtr passwordPtr = Marshal.SecureStringToBSTR(credentials.Password); //Convert SecureString password to BSTR and get the pointer
                     try
                     {

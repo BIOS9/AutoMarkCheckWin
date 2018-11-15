@@ -3,7 +3,11 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Runtime.InteropServices;
+using System.Security.Authentication;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -16,8 +20,9 @@ namespace AutoMarkCheck
      */
     public class ServerAgent
     {
+        private const string API_URL = "http://automarkcheck.kwiius.com:4567/yeet";
         private const string TOKEN_PLACEHOLDER = "|[tokenplaceholder]|";
-        private string USER_AGENT = $"Auto Mark Check {Environment.OSVersion.Platform} {Environment.OSVersion.VersionString}/1.0"; //User agent will contain OS name and version
+        private static string _userAgent = $"Auto Mark Check {Environment.OSVersion.Platform} {Environment.OSVersion.VersionString}/1.0"; //User agent will contain OS name and version
 
         /**
          * <summary>Report courses and grades to the bot server.</summary>
@@ -33,7 +38,7 @@ namespace AutoMarkCheck
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Grade report started.");
 
                 string jsonData = SerializeData(courses, hostname);
-                await Upload(jsonData, credentials);
+                //await Upload(jsonData, credentials);
 
                 Logging.Log(Logging.LogLevel.INFO, $"{nameof(ServerAgent)}.{nameof(ReportError)}", "Successfully reported grades to bot server.");
                 return true;
@@ -83,15 +88,77 @@ namespace AutoMarkCheck
             string beforeToken = jsonData.Substring(0, jsonData.IndexOf(TOKEN_PLACEHOLDER));
             string afterToken = jsonData.Substring(jsonData.IndexOf(TOKEN_PLACEHOLDER) + TOKEN_PLACEHOLDER.Length);
 
+            //Calculate length of post JSON data
             byte[] beforeTokenBytes = CredentialManager.MarkCredentials.CredentialEncoding.GetBytes(beforeToken);
             byte[] afterTokenBytes = CredentialManager.MarkCredentials.CredentialEncoding.GetBytes(afterToken);
+            int dataLength = beforeTokenBytes.Length + afterTokenBytes.Length + credentials.EscapedBotTokenSize;
 
-            
-            MessageBox.Show(beforeToken);
-            
-            MessageBox.Show(afterToken);
+            //Create request
+            HttpWebRequest request = WebRequest.CreateHttp(API_URL);
 
-            Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Report upload finished.");
+            //Set HTTP data such as headers
+            request.Method = "POST";
+            request.ContentType = "application/json";
+            request.ContentLength = dataLength;
+            request.UserAgent = _userAgent;
+            request.Accept = "*/*";
+            request.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip, deflate");
+            request.Headers.Add(HttpRequestHeader.CacheControl, "no-cache");
+
+            using (Stream stream = await request.GetRequestStreamAsync())
+            {
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(Upload)}", "Writing login credentials.");
+                //Write first part of JSON before token
+                await stream.WriteAsync(beforeTokenBytes, 0, beforeTokenBytes.Length);
+
+                //Write token to stream character by character
+                IntPtr tokenPtr = Marshal.SecureStringToBSTR(credentials.BotToken); //Convert SecureString token to BSTR and get the pointer
+                try
+                {
+                    byte b = 1;
+                    int i = 0;
+
+                    while (true) //Loop over characters in the BSTR
+                    {
+                        b = Marshal.ReadByte(tokenPtr, i);
+                        if (b == 0) break; //If terminator character '\0' is hit exit loop
+
+                        string escapedChar = JsonConvert.ToString((char)b); //Token is uploaded in JSON so it must be escaped in both json then URI format
+                        escapedChar = escapedChar.Remove(0, 1); //To remove the leading "
+                        escapedChar = escapedChar.Remove(escapedChar.Length - 1, 1); //To remove the trailing "
+                        byte[] escapedCharBytes = CredentialManager.MarkCredentials.CredentialEncoding.GetBytes(escapedChar);
+                        await stream.WriteAsync(escapedCharBytes, 0, escapedCharBytes.Length);
+
+                        i = i + 2;  // BSTR is unicode and occupies 2 bytes
+                    }
+                }
+                finally
+                {
+                    Marshal.ZeroFreeBSTR(tokenPtr); //Securely clear token BSTR from memory
+                }
+
+                await stream.WriteAsync(afterTokenBytes, 0, afterTokenBytes.Length); //Write the end of the JSON
+            }
+
+            Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(Upload)}", "Getting report response.");
+
+            //Get the report response
+            using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
+            {
+                if (response.StatusCode == HttpStatusCode.OK)
+                    Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(Upload)}", "Successfully uploaded report to server.");
+                else
+                {
+                    string responseStr;
+                    using (Stream stream = response.GetResponseStream())
+                    using (StreamReader reader = new StreamReader(stream))
+                        responseStr = await reader.ReadToEndAsync();
+                    Logging.Log(Logging.LogLevel.ERROR, $"{nameof(ServerAgent)}.{nameof(Upload)}", $"Failed to upload report to bot server. Server returned: {response.StatusCode} {response.StatusDescription} : {responseStr}");
+                    throw new Exception("Report upload failed.");
+                }
+            }
+
+            Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(Upload)}", "Report upload finished.");
         }
 
         /**
@@ -115,12 +182,13 @@ namespace AutoMarkCheck
                 jsonObject.error = error;
 
             TimeSpan uptime = (DateTime.Now - Process.GetCurrentProcess().StartTime);
-            jsonObject.uptime = uptime.ToString("d' days, 'hh':'mm':'ss");
+            //string dayStr = uptime.Days == 1 ? "day" : "days";
+            jsonObject.uptime = uptime.ToString($"d' days', 'hh':'mm':'ss");
 
             jsonObject.hostname = hostanme;
 
             //Using a place holder for the token so it can be injected into the upload stream to prevent storing the unencrypted token in memory.
-            jsonObject.token = TOKEN_PLACEHOLDER; 
+            jsonObject.token = TOKEN_PLACEHOLDER;
 
             return JsonConvert.SerializeObject(jsonObject); //Convert object into JSON string.
         }
