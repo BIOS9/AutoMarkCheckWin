@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AutoMarkCheck.Grades
+﻿namespace AutoMarkCheck.Grades
 {
     /**
     * <summary>Contains information about a single VUW course. Includes CRN, Subject, Course, Course Title and Grade.</summary>

@@ -1,13 +1,8 @@
-﻿using AutoMarkCheck;
-using AutoMarkCheck.Helpers;
+﻿using AutoMarkCheck.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace AutoMatkCheckTesting
 {

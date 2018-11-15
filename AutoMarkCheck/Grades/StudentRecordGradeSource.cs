@@ -33,6 +33,14 @@ namespace AutoMarkCheck.Grades
         }
 
         /**
+         * <summary>Checks if credentials are valid for this GradeSource</summary>
+         */
+        public async Task<bool> CheckCredentials()
+        {
+            throw new NotImplementedException();
+        }
+
+        /**
          * <summary>Gets course grades from the MyVictoria website using the specified credentials.</summary>
          * <returns>A list of <see cref="CourseInfo">CourseGrade</see> objects containing the grades for each course.</returns>
          * <exception cref="AuthenticationException">Thrown if the credentials are incorrect or login fails for another reason.</exception>

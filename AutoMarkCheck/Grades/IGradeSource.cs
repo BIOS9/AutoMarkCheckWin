@@ -13,6 +13,7 @@ namespace AutoMarkCheck.Grades
     interface IGradeSource
     {
         Task<List<CourseInfo>> GetGrades();
+        Task<bool> CheckCredentials();
         void SetCredentials(MarkCredentials credentials);
     }
 }

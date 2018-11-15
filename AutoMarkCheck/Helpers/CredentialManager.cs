@@ -1,4 +1,5 @@
-﻿using AutoMarkCheck.Helpers;
+﻿using AutoMarkCheck.Grades;
+using AutoMarkCheck.Helpers;
 using CredentialManagement;
 using Newtonsoft.Json;
 using System;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace AutoMarkCheck.Helpers
 {
@@ -15,10 +17,10 @@ namespace AutoMarkCheck.Helpers
     public class CredentialManager
     {
 #if DEBUG
-        private const string VUW_CREDENTIAL_STORE_TARGET = "AutoMarkCheckVUWDebug";
+        private const string VUW_CREDENTIAL_STORE_TARGET = "AutoMarkCheckGradesDebug";
         private const string DISCORD_CREDENTIAL_STORE_TARGET = "AutoMarkCheckDiscordDebug";
 #else
-        private const string VUW_CREDENTIAL_STORE_TARGET = "AutoMarkCheckVUW";
+        private const string VUW_CREDENTIAL_STORE_TARGET = "AutoMarkCheckGrades";
         private const string DISCORD_CREDENTIAL_STORE_TARGET = "AutoMarkCheckDiscord";
 #endif
         /**

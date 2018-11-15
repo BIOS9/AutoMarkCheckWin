@@ -17,22 +17,7 @@ namespace AutoMarkCheck.UI
 
         private async void button1_Click(object sender, EventArgs e)
         {
-            var creds = CredentialManager.GetCredentials();
-            if (creds == null)
-            {
-                MessageBox.Show("No creds");
-                return;
-            }
-            try
-            {
-                //var courses = await MyVUWAgent.GetGrades(creds);
-                //await ServerAgent.ReportGrades(courses, "coolHost", creds);
-                //MessageBox.Show("grade count: " + courses.Count);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
+
         }
 
         private async void MainForm_Load(object sender, EventArgs e)
@@ -47,6 +32,7 @@ namespace AutoMarkCheck.UI
 
             IGradeSource gradeSource = new MyVuwGradeSource(creds);
             ServerAgent serverAgent = new ServerAgent(creds, "CoolHost 😎");
+            //MessageBox.Show((await gradeSource.CheckCredentials()).ToString());
             List<CourseInfo> courses = await gradeSource.GetGrades();
 
             if (courses.Count > 0)

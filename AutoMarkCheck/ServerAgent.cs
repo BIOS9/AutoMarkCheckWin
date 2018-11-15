@@ -10,7 +10,6 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static AutoMarkCheck.Grades.MyVuwGradeSource;
 using static AutoMarkCheck.Helpers.CredentialManager;
 
 namespace AutoMarkCheck
@@ -30,6 +29,11 @@ namespace AutoMarkCheck
         {
             Credentials = credentials;
             Hostname = hostname;
+        }
+
+        public async Task<bool> CheckCredentials()
+        {
+            throw new NotImplementedException();
         }
 
         /**
