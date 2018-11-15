@@ -48,7 +48,7 @@ namespace AutoMarkCheck
             var creds = CredentialManager.GetCredentials();
             if (creds == null)
             {
-                CredentialManager.SetCredentials(new CredentialManager.MarkCredentials("test", "test", "token"));
+                CredentialManager.SetCredentials(new CredentialManager.MarkCredentials("test", "test", "tokenInsertHere"));
                 MessageBox.Show("No creds");
                 return;
             }

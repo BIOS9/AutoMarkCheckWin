@@ -35,21 +35,25 @@ namespace AutoMatkCheckTesting
         [TestMethod]
         public void EscapedCredentialLength()
         {
-            string str = "HelloTest123|\\@@#!@#5";
-            SecureString secureStr = new SecureString();
-            str.ToList().ForEach(x => secureStr.AppendChar(x));
+            string password = "SuperGoodPassword\\!\\aaaaaaa.312323&(*&@#";
+            string token = "HelloTest123|\\@@#!@#5";
+            SecureString securePassword = new SecureString();
+            SecureString secureToken = new SecureString();
+            password.ToList().ForEach(x => securePassword.AppendChar(x));
+            token.ToList().ForEach(x => secureToken.AppendChar(x));
 
-            int escapedLength = MarkCredentials.CredentialEncoding.GetByteCount(Uri.EscapeDataString(str));
-            string jsonString = JsonConvert.ToString(str).Remove(0, 1);
+            int escapedPasswordLength = MarkCredentials.CredentialEncoding.GetByteCount(Uri.EscapeDataString(password));
+
+            string jsonString = JsonConvert.ToString(token).Remove(0, 1);
             jsonString = jsonString.Remove(jsonString.Length - 1, 1);
             int escapedTokenLength = MarkCredentials.CredentialEncoding.GetByteCount(jsonString);
 
-            MarkCredentials cred1 = new MarkCredentials("", str, str);
-            Assert.AreEqual(escapedLength, cred1.EscapedPasswordSize, "Escaped password length incorrect for string initialized MarkCredentials.");
+            MarkCredentials cred1 = new MarkCredentials("", password, token);
+            Assert.AreEqual(escapedPasswordLength, cred1.EscapedPasswordSize, "Escaped password length incorrect for string initialized MarkCredentials.");
             Assert.AreEqual(escapedTokenLength, cred1.EscapedBotTokenSize, "Escaped bot token length incorrect for string initialized MarkCredentials.");
 
-            MarkCredentials cred2 = new MarkCredentials("", secureStr, secureStr);
-            Assert.AreEqual(escapedLength, cred2.EscapedPasswordSize, "Escaped password length incorrect for SecureString initialized MarkCredentials.");
+            MarkCredentials cred2 = new MarkCredentials("", securePassword, secureToken);
+            Assert.AreEqual(escapedPasswordLength, cred2.EscapedPasswordSize, "Escaped password length incorrect for SecureString initialized MarkCredentials.");
             Assert.AreEqual(escapedTokenLength, cred2.EscapedBotTokenSize, "Escaped bot token length incorrect for SecureString initialized MarkCredentials.");
         }
 
@@ -60,8 +64,10 @@ namespace AutoMatkCheckTesting
             string password = RandomString(10);
             string token = RandomString(10);
             MarkCredentials cred1 = new MarkCredentials(username, password, token);
+            Assert.IsNotNull(cred1, "New credential is null.");
             SetCredentials(cred1);
             MarkCredentials cred2 = GetCredentials();
+            Assert.IsNotNull(cred2, "GetCredentials returned null.");
             Assert.AreEqual(cred1.Username, cred2.Username, "Saved and loaded username does not match.");
             Assert.AreEqual(ToStr(cred1.Password), ToStr(cred2.Password), "Saved and loaded password does not match.");
             Assert.AreEqual(ToStr(cred1.BotToken), ToStr(cred2.BotToken), "Saved and loaded bot token does not match.");

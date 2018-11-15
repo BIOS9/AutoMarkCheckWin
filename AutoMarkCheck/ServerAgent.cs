@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Security.Authentication;
 using System.Text;
 using System.Threading.Tasks;
@@ -77,6 +78,20 @@ namespace AutoMarkCheck
             }
         }
 
+        static string ToStr(SecureString value)
+        {
+            IntPtr valuePtr = IntPtr.Zero;
+            try
+            {
+                valuePtr = Marshal.SecureStringToGlobalAllocUnicode(value);
+                return Marshal.PtrToStringUni(valuePtr);
+            }
+            finally
+            {
+                Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
+            }
+        }
+
         /**
          * <summary>Upload JSON serialized report to the bot server.</summary>
          * <param name="jsonData">Json data containing the report.</param>
@@ -93,7 +108,7 @@ namespace AutoMarkCheck
             byte[] beforeTokenBytes = CredentialManager.MarkCredentials.CredentialEncoding.GetBytes(beforeToken);
             byte[] afterTokenBytes = CredentialManager.MarkCredentials.CredentialEncoding.GetBytes(afterToken);
 
-            int dataLength = beforeTokenBytes.Length + afterTokenBytes.Length + credentials.EscapedBotTokenSize;
+            int dataLength = credentials.EscapedBotTokenSize + beforeTokenBytes.Length + afterTokenBytes.Length;
 
             //Create request
             HttpWebRequest request = WebRequest.CreateHttp(API_URL);

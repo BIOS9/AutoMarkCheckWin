@@ -36,8 +36,6 @@ namespace AutoMarkCheck
 
             #region Constructors
 
-            public MarkCredentials() { }
-
             public MarkCredentials(string username, string password, string botToken)
             {
                 Username = username;
@@ -53,6 +51,8 @@ namespace AutoMarkCheck
                 jsonString = jsonString.Remove(0, 1); //To remove the leading "
                 jsonString = jsonString.Remove(jsonString.Length - 1, 1); //To remove the trailing "
                 EscapedBotTokenSize = CredentialEncoding.GetByteCount(jsonString);
+                Password.MakeReadOnly();
+                BotToken.MakeReadOnly();
             }
 
             public MarkCredentials(string username, SecureString password, SecureString botToken)
@@ -93,7 +93,7 @@ namespace AutoMarkCheck
 
                     while (true) //Loop over characters in the BSTR
                     {
-                        b = Marshal.ReadByte(passwordPtr, i);
+                        b = Marshal.ReadByte(tokenPtr, i);
                         if (b == 0) break; //If terminator character '\0' is hit exit loop
 
                         string jsonString = JsonConvert.ToString((char)b); //Token is uploaded in JSON so it must be escaped in both json then URI format
@@ -108,6 +108,8 @@ namespace AutoMarkCheck
                 {
                     Marshal.ZeroFreeBSTR(tokenPtr); //Securely clear password BSTR from memory
                 }
+                Password.MakeReadOnly();
+                BotToken.MakeReadOnly();
             }
 
             #endregion
@@ -174,9 +176,9 @@ namespace AutoMarkCheck
                 {
                     Target = DISCORD_CREDENTIAL_STORE_TARGET,
                     PersistanceType = PersistanceType.LocalComputer,
+                    Username = "Discord",
                     SecurePassword = credentials.BotToken,
                     Type = CredentialType.Generic,
-                    Username = "Discord",
                     Description = "Discord token for AutoMarkCheck bot."
                 }.Save();
 

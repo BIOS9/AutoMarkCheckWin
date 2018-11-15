@@ -24,28 +24,38 @@ namespace AutoMarkCheck
         
         public static void Log(LogLevel level, string source, string message, Exception exception = null)
         {
-            //Console.Write($"[{DateTime.Now.ToString()}] [{level.ToString()}] <{source}> \"{message}\"");
-            //if(exception != null)
-            //{
-            //    Console.ForegroundColor = ConsoleColor.Red;
-            //    Console.Write(exception.Message);
-            //    Console.ResetColor();
-            //}
-            //Console.WriteLine();
-
-            Debug.Write($"[{DateTime.Now.ToString()}] [{level.ToString()}] <{source}> \"{message}\"");
-            if (exception != null)
+            try
             {
-                Debug.Write(exception.Message);
-            }
-            Debug.WriteLine("");
+                //Console.Write($"[{DateTime.Now.ToString()}] [{level.ToString()}] <{source}> \"{message}\"");
+                //if(exception != null)
+                //{
+                //    Console.ForegroundColor = ConsoleColor.Red;
+                //    Console.Write(exception.Message);
+                //    Console.ResetColor();
+                //}
+                //Console.WriteLine();
 
-            tempForm.richTextBox1.AppendText($"[{DateTime.Now.ToString()}] [{level.ToString()}] <{source}> \"{message}\"");
-            if (exception != null)
-            {
-                tempForm.richTextBox1.AppendText(" Exception: \"" + exception.Message + " - " + exception.StackTrace + "\"");
+                Debug.Write($"[{DateTime.Now.ToString()}] [{level.ToString()}] <{source}> \"{message}\"");
+                if (exception != null)
+                {
+                    Debug.Write(exception.Message);
+                }
+                Debug.WriteLine("");
+
+                if (tempForm != null)
+                {
+                    tempForm.richTextBox1.AppendText($"[{DateTime.Now.ToString()}] [{level.ToString()}] <{source}> \"{message}\"");
+                    if (exception != null)
+                    {
+                        tempForm.richTextBox1.AppendText(" Exception: \"" + exception.Message + " - " + exception.StackTrace + "\"");
+                    }
+                    tempForm.richTextBox1.AppendText(Environment.NewLine);
+                }
             }
-            tempForm.richTextBox1.AppendText(Environment.NewLine);
+            catch
+            {
+
+            }
         }
     }
 }
