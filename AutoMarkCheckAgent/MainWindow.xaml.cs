@@ -23,9 +23,42 @@ namespace AutoMarkCheckAgent
     /// </summary>
     public partial class MainWindow : Window
     {
+        AnimationHelper animator;
+
         public MainWindow()
         {
             InitializeComponent();
+            animator = new AnimationHelper(this);
+        }
+
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                DragMove();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            BlurHelper.BlurWindow(this);
+            animator.Animate("Show0.25", ExitButton, TitleLabel, TradeMarkLabel);
+
+            animator.Opacity(0, UsernameLabel, UsernameTextBox, PasswordLabel, PasswordTextBox, BotTokenLabel, BotTokenTextBox, SubmitButton);
+            animator.DelayAnimate(25, "Show1Fast", UsernameLabel);
+            animator.DelayAnimate(50, "Show1Fast", UsernameTextBox);
+            animator.DelayAct(50, () => animator.Opacity(1, UsernameLabel, UsernameTextBox));
+            animator.DelayAnimate(75, "Show1Fast", PasswordLabel);
+            animator.DelayAnimate(100, "Show1Fast", PasswordTextBox);
+            animator.DelayAct(100, () => animator.Opacity(1, PasswordLabel, PasswordTextBox));
+            animator.DelayAnimate(125, "Show1Fast", BotTokenLabel);
+            animator.DelayAnimate(150, "Show1Fast", BotTokenTextBox);
+            animator.DelayAct(150, () => animator.Opacity(1, BotTokenLabel, BotTokenTextBox));
+            animator.DelayAnimate(175, "Show1Fast", SubmitButton);
+            animator.DelayAct(175, () => animator.Opacity(1, SubmitButton, BotTokenTextBox));
+        }
+
+        private void ExitButton_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
 
         private async void test()
