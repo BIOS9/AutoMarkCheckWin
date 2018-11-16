@@ -17,11 +17,11 @@ namespace AutoMarkCheck.Helpers
     public class CredentialManager
     {
 #if DEBUG
-        private const string VUW_CREDENTIAL_STORE_TARGET = "AutoMarkCheckGradesDebug";
-        private const string API_CREDENTIAL_STORE_TARGET = "AutoMarkCheckAPIDebug";
+        private const string VuwCredentialStoreTarget = "AutoMarkCheckGradesDebug";
+        private const string ApiCredentialStoreTarget = "AutoMarkCheckAPIDebug";
 #else
-        private const string VUW_CREDENTIAL_STORE_TARGET = "AutoMarkCheckGrades";
-        private const string API_CREDENTIAL_STORE_TARGET = "AutoMarkCheckAPI";
+        private const string VuwCredentialStoreTarget = "AutoMarkCheckGrades";
+        private const string ApiCredentialStoreTarget = "AutoMarkCheckAPI";
 #endif
         /**
          * <summary>Credential class to store credentials for MyVUW and the bot API</summary>
@@ -126,8 +126,8 @@ namespace AutoMarkCheck.Helpers
             try
             {
                 //Get credentials from Windows credential store
-                var myVuwCredentials = new Credential { Target = VUW_CREDENTIAL_STORE_TARGET };
-                var apiCredentials = new Credential { Target = API_CREDENTIAL_STORE_TARGET };
+                var myVuwCredentials = new Credential { Target = VuwCredentialStoreTarget };
+                var apiCredentials = new Credential { Target = ApiCredentialStoreTarget };
 
                 if (!myVuwCredentials.Load() || !apiCredentials.Load())
                 {
@@ -165,7 +165,7 @@ namespace AutoMarkCheck.Helpers
                 //Create and save MyVictoria credential object
                 new Credential
                 {
-                    Target = VUW_CREDENTIAL_STORE_TARGET,
+                    Target = VuwCredentialStoreTarget,
                     PersistanceType = PersistanceType.LocalComputer,
                     Username = credentials.Username,
                     SecurePassword = credentials.Password,
@@ -176,7 +176,7 @@ namespace AutoMarkCheck.Helpers
                 //Create and save API credential object
                 new Credential
                 {
-                    Target = API_CREDENTIAL_STORE_TARGET,
+                    Target = ApiCredentialStoreTarget,
                     PersistanceType = PersistanceType.LocalComputer,
                     Username = "API",
                     SecurePassword = credentials.ApiKey,
@@ -199,8 +199,8 @@ namespace AutoMarkCheck.Helpers
         {
             try
             {
-                Credential myVuwCredentials = new Credential { Target = VUW_CREDENTIAL_STORE_TARGET };
-                Credential apiCredentials = new Credential { Target = API_CREDENTIAL_STORE_TARGET };
+                Credential myVuwCredentials = new Credential { Target = VuwCredentialStoreTarget };
+                Credential apiCredentials = new Credential { Target = ApiCredentialStoreTarget };
                 bool deleted = myVuwCredentials.Delete() && apiCredentials.Delete();
 
                 if(deleted)

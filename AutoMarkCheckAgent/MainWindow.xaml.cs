@@ -24,7 +24,7 @@ namespace AutoMarkCheckAgent
     /// </summary>
     public partial class MainWindow : Window
     {
-        AnimationHelper animator;
+        AnimationHelper _animator;
         bool _passwordChanged = false;
         bool _apiKeyChanged = false;
         SecureString _password;
@@ -33,8 +33,8 @@ namespace AutoMarkCheckAgent
         public MainWindow()
         {
             InitializeComponent();
-            animator = new AnimationHelper(this);
-            animator.Opacity(0, EnableCheckBox, UsernameLabel, UsernameTextBox, PasswordLabel, PasswordTextBox, ApiKeyLabel, ApiKeyTextBox, PublicCheckBox, SaveButton, CancelButton, TestButton); //Hide GUI controls before animation.
+            _animator = new AnimationHelper(this);
+            _animator.Opacity(0, EnableCheckBox, UsernameLabel, UsernameTextBox, PasswordLabel, PasswordTextBox, ApiKeyLabel, ApiKeyTextBox, PublicCheckBox, SaveButton, CancelButton, TestButton); //Hide GUI controls before animation.
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -47,26 +47,26 @@ namespace AutoMarkCheckAgent
         {
             LoadCredentials();
             BlurHelper.BlurWindow(this); //Adds blurred glass effect
-            animator.Animate("Show0.25", ExitButton, TitleLabel, TradeMarkLabel);
+            _animator.Animate("Show0.25", ExitButton, TitleLabel, TradeMarkLabel);
 
             //Animate the control display
-            animator.DelayAnimate(25, "Show1Fast", EnableCheckBox);
-            animator.DelayAct(25, () => animator.Opacity(1, EnableCheckBox));
-            animator.DelayAnimate(50, "Show1Fast", UsernameLabel);
-            animator.DelayAnimate(75, "Show1Fast", UsernameTextBox);
-            animator.DelayAct(75, () => animator.Opacity(1, UsernameLabel, UsernameTextBox));
-            animator.DelayAnimate(100, "Show1Fast", PasswordLabel);
-            animator.DelayAnimate(125, "Show1Fast", PasswordTextBox);
-            animator.DelayAct(125, () => animator.Opacity(1, PasswordLabel, PasswordTextBox));
-            animator.DelayAnimate(150, "Show1Fast", ApiKeyLabel);
-            animator.DelayAnimate(175, "Show1Fast", ApiKeyTextBox);
-            animator.DelayAct(175, () => animator.Opacity(1, ApiKeyLabel, ApiKeyTextBox));
-            animator.DelayAnimate(200, "Show1Fast", PublicCheckBox);
-            animator.DelayAct(200, () => animator.Opacity(1, PublicCheckBox));
-            animator.DelayAnimate(225, "Show1Fast", TestButton);
-            animator.DelayAct(225, () => animator.Opacity(1, TestButton));
-            animator.DelayAnimate(250, "Show1Fast", SaveButton, CancelButton);
-            animator.DelayAct(250, () => animator.Opacity(1, SaveButton, CancelButton));
+            _animator.DelayAnimate(25, "Show1Fast", EnableCheckBox);
+            _animator.DelayAct(25, () => _animator.Opacity(1, EnableCheckBox));
+            _animator.DelayAnimate(50, "Show1Fast", UsernameLabel);
+            _animator.DelayAnimate(75, "Show1Fast", UsernameTextBox);
+            _animator.DelayAct(75, () => _animator.Opacity(1, UsernameLabel, UsernameTextBox));
+            _animator.DelayAnimate(100, "Show1Fast", PasswordLabel);
+            _animator.DelayAnimate(125, "Show1Fast", PasswordTextBox);
+            _animator.DelayAct(125, () => _animator.Opacity(1, PasswordLabel, PasswordTextBox));
+            _animator.DelayAnimate(150, "Show1Fast", ApiKeyLabel);
+            _animator.DelayAnimate(175, "Show1Fast", ApiKeyTextBox);
+            _animator.DelayAct(175, () => _animator.Opacity(1, ApiKeyLabel, ApiKeyTextBox));
+            _animator.DelayAnimate(200, "Show1Fast", PublicCheckBox);
+            _animator.DelayAct(200, () => _animator.Opacity(1, PublicCheckBox));
+            _animator.DelayAnimate(225, "Show1Fast", TestButton);
+            _animator.DelayAct(225, () => _animator.Opacity(1, TestButton));
+            _animator.DelayAnimate(250, "Show1Fast", SaveButton, CancelButton);
+            _animator.DelayAct(250, () => _animator.Opacity(1, SaveButton, CancelButton));
         }
 
         private void ExitButton_Click(object sender, RoutedEventArgs e)

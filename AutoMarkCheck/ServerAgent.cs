@@ -19,12 +19,14 @@ namespace AutoMarkCheck
      */
     public class ServerAgent
     {
-        private const string API_URL = "http://automarkcheck.kwiius.com:4567/yeet";
-        private const string TOKEN_PLACEHOLDER = "|[tokenplaceholder]|";
-        private string _userAgent = $"Auto Mark Check {Environment.OSVersion.Platform} {Environment.OSVersion.VersionString}/1.0"; //User agent will contain OS name and version
         public MarkCredentials Credentials;
         public string Hostname;
         public bool MakeCoursesPublic;
+
+        private const string ApiUrl = "http://automarkcheck.kwiius.com:4567/yeet";
+        private const string TokenPlaceholder = "|[tokenplaceholder]|";
+        private string _userAgent = $"Auto Mark Check {Environment.OSVersion.Platform} {Environment.OSVersion.VersionString}/1.0"; //User agent will contain OS name and version
+       
 
         public ServerAgent(MarkCredentials credentials, string hostname, bool makeCoursesPublic = false)
         {
@@ -100,8 +102,8 @@ namespace AutoMarkCheck
         {
             Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(Upload)}", "Report upload started.");
 
-            string beforeToken = jsonData.Substring(0, jsonData.IndexOf(TOKEN_PLACEHOLDER));
-            string afterToken = jsonData.Substring(jsonData.IndexOf(TOKEN_PLACEHOLDER) + TOKEN_PLACEHOLDER.Length);
+            string beforeToken = jsonData.Substring(0, jsonData.IndexOf(TokenPlaceholder));
+            string afterToken = jsonData.Substring(jsonData.IndexOf(TokenPlaceholder) + TokenPlaceholder.Length);
 
             //Calculate length of post JSON data
             byte[] beforeTokenBytes = CredentialManager.MarkCredentials.CredentialEncoding.GetBytes(beforeToken);
@@ -110,7 +112,7 @@ namespace AutoMarkCheck
             int dataLength = Credentials.EscapedApiKeySize + beforeTokenBytes.Length + afterTokenBytes.Length;
 
             //Create request
-            HttpWebRequest request = WebRequest.CreateHttp(API_URL);
+            HttpWebRequest request = WebRequest.CreateHttp(ApiUrl);
 
             //Set HTTP data such as headers
             request.Method = "POST";
@@ -208,7 +210,7 @@ namespace AutoMarkCheck
                 jsonObject.coursesPublic = MakeCoursesPublic;
 
                 //Using a place holder for the token so it can be injected into the upload stream to prevent storing the unencrypted token in memory.
-                jsonObject.token = TOKEN_PLACEHOLDER;
+                jsonObject.token = TokenPlaceholder;
 
                 return JsonConvert.SerializeObject(jsonObject); //Convert object into JSON string.
             }

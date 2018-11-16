@@ -17,22 +17,22 @@ namespace AutoMarkCheck.Grades
      */
     public class MyVuwGradeSource : IGradeSource
     {
-        private const string BASE_URL = "https://my.vuw.ac.nz";
-        private const string LOGIN_PAGE_PATH = "/cp/home/displaylogin";
-        private const string LOGIN_POST_PATH = "/cp/home/login";
-        private const string LOGIN_OK_PATH = "/cps/welcome/loginok.html";
-        private const string LOGIN_NEXT_PATH = "/cp/home/next";
+        private const string BaseUrl = "https://my.vuw.ac.nz";
+        private const string LoginPagePath = "/cp/home/displaylogin";
+        private const string LoginPostPath = "/cp/home/login";
+        private const string LoginOkPath = "/cps/welcome/loginok.html";
+        private const string LoginNextPath = "/cp/home/next";
 
         //The following URLs are a bit funky, ther are alternate URLs for some of these, but they all seem to work. I wish they had an easier site structure.
-        private const string HOME_PATH = "/render.userLayoutRootNode.uP?uP_root=root";
-        private const string MY_STUDY_PATH = "/tag.c56f3aaeaf27f1c8.render.userLayoutRootNode.uP?uP_root=root&uP_sparam=activeTab&activeTab=u12l1s8&uP_tparam=frm&frm=";
-        private const string GRADE_PATH = "/tag.c56f3aaeaf27f1c8.render.userLayoutRootNode.uP?uP_root=u12l1n642"; //Alternative => /tag.e346fb87a7e9ef60.render.userLayoutRootNode.uP?uP_root=u12l1n642
-        private const string TERM_UPDATE_PATH = "/tag.c56f3aaeaf27f1c8.render.userLayoutRootNode.uP?uP_edit_target=u12l1n642";
-        private const string TERM_UPDATE_POST_PATH = "/tag.c56f3aaeaf27f1c8.render.userLayoutRootNode.target.u12l1n642.uP";
+        private const string HomePath = "/render.userLayoutRootNode.uP?uP_root=root";
+        private const string MyStudyPath = "/tag.c56f3aaeaf27f1c8.render.userLayoutRootNode.uP?uP_root=root&uP_sparam=activeTab&activeTab=u12l1s8&uP_tparam=frm&frm=";
+        private const string GradePath = "/tag.c56f3aaeaf27f1c8.render.userLayoutRootNode.uP?uP_root=u12l1n642"; //Alternative => /tag.e346fb87a7e9ef60.render.userLayoutRootNode.uP?uP_root=u12l1n642
+        private const string TermUpdatePath = "/tag.c56f3aaeaf27f1c8.render.userLayoutRootNode.uP?uP_edit_target=u12l1n642";
+        private const string TermUpdatePostPath = "/tag.c56f3aaeaf27f1c8.render.userLayoutRootNode.target.u12l1n642.uP";
 
-        private const string LOGIN_UUID_PATTERN = "(?:document.cplogin.uuid.value=\")([\\da-zA-Z-]+)(?:\";)";
+        private const string LoginUuidPattern = "(?:document.cplogin.uuid.value=\")([\\da-zA-Z-]+)(?:\";)";
 
-        private readonly static TimeSpan YEAR_SET_INTERVAL = TimeSpan.FromHours(6); //Sets the year to the current year, just in case the user has an old year selected and the old results are coming up.
+        private readonly static TimeSpan YearSetInterval = TimeSpan.FromHours(6); //Sets the year to the current year, just in case the user has an old year selected and the old results are coming up.
 
         private bool _setYearOnNext = false; //Whether to set the default grade year on the next request
         private DateTime _lastYearSet = DateTime.MinValue;
@@ -80,14 +80,14 @@ namespace AutoMarkCheck.Grades
 
                 PersistentWebClient client = await Login(); //Create logged in session
 
-                if (_setYearOnNext || DateTime.Now - _lastYearSet > YEAR_SET_INTERVAL)
+                if (_setYearOnNext || DateTime.Now - _lastYearSet > YearSetInterval)
                 {
                     _setYearOnNext = false;
                     _lastYearSet = DateTime.Now;
                     await SetGradeYear(client); //Set year for displayed grades to current year
                 }
 
-                string result = await client.Get(BASE_URL + GRADE_PATH); //Download grade page
+                string result = await client.Get(BaseUrl + GradePath); //Download grade page
 
                 List<CourseInfo> grades = ParseGradeHtml(result);
 
@@ -165,7 +165,7 @@ namespace AutoMarkCheck.Grades
                 int dataLength = uuidData.Length + userData.Length + passData.Length + _credentials.EscapedPasswordSize; //Calculate length of bytes
 
                 //Create request
-                HttpWebRequest request = WebRequest.CreateHttp(BASE_URL + LOGIN_POST_PATH);
+                HttpWebRequest request = WebRequest.CreateHttp(BaseUrl + LoginPostPath);
 
                 //Set HTTP data such as headers
                 request.Method = "POST";
@@ -230,8 +230,8 @@ namespace AutoMarkCheck.Grades
                 }
 
                 //Browse to these URLs, the site doesnt work properly unless you visit these
-                await client.Get(BASE_URL + LOGIN_OK_PATH);
-                await client.Get(BASE_URL + LOGIN_NEXT_PATH);
+                await client.Get(BaseUrl + LoginOkPath);
+                await client.Get(BaseUrl + LoginNextPath);
 
                 Logging.Log(Logging.LogLevel.INFO, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(Login)}", "Successfully logged into MyVuw");
 
@@ -255,8 +255,8 @@ namespace AutoMarkCheck.Grades
 
                 PersistentWebClient client = new PersistentWebClient();
 
-                string pageText = await client.Get(BASE_URL + LOGIN_PAGE_PATH); //Download page text
-                string uuid = Regex.Match(pageText, LOGIN_UUID_PATTERN).Groups[1].Value; //Find the UUID inside the HTML/JS
+                string pageText = await client.Get(BaseUrl + LoginPagePath); //Download page text
+                string uuid = Regex.Match(pageText, LoginUuidPattern).Groups[1].Value; //Find the UUID inside the HTML/JS
 
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetLoginParams)}", "Finished getting login parameters");
 
@@ -280,12 +280,12 @@ namespace AutoMarkCheck.Grades
             {
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(SetGradeYear)}", $"Started setting grade year to {DateTime.Now.Year}01.");
                 //The site wont change the setting until you browse to these urls
-                await client.Get(BASE_URL + HOME_PATH);
-                await client.Get(BASE_URL + MY_STUDY_PATH);
-                await client.Get(BASE_URL + TERM_UPDATE_PATH);
+                await client.Get(BaseUrl + HomePath);
+                await client.Get(BaseUrl + MyStudyPath);
+                await client.Get(BaseUrl + TermUpdatePath);
 
                 //Switch into edit mode, then update the setting
-                await client.Post(BASE_URL + TERM_UPDATE_POST_PATH, new Dictionary<string, string> {
+                await client.Post(BaseUrl + TermUpdatePostPath, new Dictionary<string, string> {
                     { "MODE", "EDIT" },
                     { "VIEW", "EDUPDATE" },
                     { "TEXTDATA", "999" }, //Display up to 999 grades on the Courses and Grades page
@@ -293,7 +293,7 @@ namespace AutoMarkCheck.Grades
                 });
 
                 //Switch out of edit mode so grades can be viewed
-                await client.Post(BASE_URL + TERM_UPDATE_POST_PATH, new Dictionary<string, string> {
+                await client.Post(BaseUrl + TermUpdatePostPath, new Dictionary<string, string> {
                     { "MODE", "DEFAULT" },
                     { "VIEW", "DEFAULT" },
                     { "TEXTDATA", "999" },

@@ -24,10 +24,10 @@ using System.Windows.Threading;
     */
 public class AnimationHelper
 {
-    private Timer timer = null; //Timer to check for due animations and actions in the pools.
-    private Window baseWindow = null; //Calling window to execute animations and actions on.
-    private List<DelayAnimation> delayAnimations = new List<DelayAnimation>(); //Pool to store animations being delayed.
-    private List<DelayAction> delayActions = new List<DelayAction>(); //Pool to store actions being delayed.
+    private Timer _timer = null; //Timer to check for due animations and actions in the pools.
+    private Window _baseWindow = null; //Calling window to execute animations and actions on.
+    private List<DelayAnimation> _delayAnimations = new List<DelayAnimation>(); //Pool to store animations being delayed.
+    private List<DelayAction> _delayActions = new List<DelayAction>(); //Pool to store actions being delayed.
 
     /**<summary>
         * Dynamic helper to execute animations and actions with specific parameters.
@@ -38,8 +38,8 @@ public class AnimationHelper
         */
     public AnimationHelper(Window baseWindow)
     {
-        this.baseWindow = baseWindow;
-        timer = new Timer(new TimerCallback(timer_tick), null, 0, 1); //Set the timer to 1ms interval with the timer_tick callback
+        _baseWindow = baseWindow;
+        _timer = new Timer(new TimerCallback(timer_tick), null, 0, 1); //Set the timer to 1ms interval with the timer_tick callback
     }
 
     /**<summary>
@@ -51,16 +51,16 @@ public class AnimationHelper
         */
     private void timer_tick(object state)
     {
-        lock (delayAnimations) //Threadsafe list access
+        lock (_delayAnimations) //Threadsafe list access
         {
             List<DelayAnimation> toDelete = new List<DelayAnimation>(); //List of delayed animations to delete after completion.
-            foreach (DelayAnimation delayAnimation in delayAnimations) //Itterate over all delayed animations
+            foreach (DelayAnimation delayAnimation in _delayAnimations) //Itterate over all delayed animations
             {
                 if (DateTime.Now > delayAnimation.executeTime) //If animation is due for execution
                 {
                     try
                     {
-                        baseWindow.Dispatcher.Invoke(() => Animate(delayAnimation), DispatcherPriority.Background); //Invoke the animation on the base window.
+                        _baseWindow.Dispatcher.Invoke(() => Animate(delayAnimation), DispatcherPriority.Background); //Invoke the animation on the base window.
                     }
                     catch { }
                     toDelete.Add(delayAnimation); //Call for deletion of old animation.
@@ -68,23 +68,23 @@ public class AnimationHelper
             }
 
             //Errors will occur if objects are deleted from a list while itterating over it:
-            toDelete.ForEach(x => delayAnimations.Remove(x)); //Delete old animations after itteration is finished
+            toDelete.ForEach(x => _delayAnimations.Remove(x)); //Delete old animations after itteration is finished
         }
 
-        lock (delayActions) //Threadsafe list access
+        lock (_delayActions) //Threadsafe list access
         {
             List<DelayAction> toDelete = new List<DelayAction>(); //List of delayed actions to delete after completion.
-            foreach (DelayAction delayAction in delayActions) //Itterate over all delayed actions
+            foreach (DelayAction delayAction in _delayActions) //Itterate over all delayed actions
             {
                 if (DateTime.Now > delayAction.executeTime) //If action is due
                 {
-                    baseWindow.Dispatcher.Invoke(delayAction.action, DispatcherPriority.Background); //Invoke the action on the base window.
+                    _baseWindow.Dispatcher.Invoke(delayAction.action, DispatcherPriority.Background); //Invoke the action on the base window.
                     toDelete.Add(delayAction); //Call for deletion of old action.
                 }
             }
 
             //Errors will occur if objects are deleted from a list while itterating over it:
-            toDelete.ForEach(x => delayActions.Remove(x)); //Delete old actions after itteration is finished
+            toDelete.ForEach(x => _delayActions.Remove(x)); //Delete old actions after itteration is finished
         }
     }
 
@@ -114,7 +114,7 @@ public class AnimationHelper
         */
     public void Animate(Animation animation)
     {
-        var story = (Storyboard)baseWindow.FindResource(animation.key); //Find animation
+        var story = (Storyboard)_baseWindow.FindResource(animation.key); //Find animation
         foreach (FrameworkElement element in animation.elements)
         {
             story?.Begin(element, true); //If storyboard animation exist, begin animation.
@@ -188,8 +188,8 @@ public class AnimationHelper
         */
     public void DelayAnimate(TimeSpan delay, Animation animation)
     {
-        lock (delayAnimations) //Threadsafe list access
-            delayAnimations.Add(new DelayAnimation(DateTime.Now.Add(delay), animation)); //Add animation to pool
+        lock (_delayAnimations) //Threadsafe list access
+            _delayAnimations.Add(new DelayAnimation(DateTime.Now.Add(delay), animation)); //Add animation to pool
     }
 
     #endregion
@@ -223,8 +223,8 @@ public class AnimationHelper
         */
     public void DelayAct(TimeSpan delay, Action action)
     {
-        lock (delayActions) //Threadsafe list access
-            delayActions.Add(new DelayAction(DateTime.Now.Add(delay), action)); //Add the action to the pool
+        lock (_delayActions) //Threadsafe list access
+            _delayActions.Add(new DelayAction(DateTime.Now.Add(delay), action)); //Add the action to the pool
     }
 
     #endregion

@@ -14,7 +14,7 @@ namespace AutoMarkCheck.Grades
      */
     public class StudentRecordGradeSource : IGradeSource
     {
-        private const string BASE_URL = "https://my.vuw.ac.nz";
+        private const string BaseUrl = "https://my.vuw.ac.nz";
         private MarkCredentials _credentials;
 
 

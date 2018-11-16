@@ -13,5 +13,12 @@ namespace AutoMarkCheckAgent
     /// </summary>
     public partial class App : Application
     {
+        public static MarkCheckDaemon Daemon;
+
+        [STAThread]
+        public static void Main()
+        {
+            Daemon = new MarkCheckDaemon();
+        }
     }
 }
