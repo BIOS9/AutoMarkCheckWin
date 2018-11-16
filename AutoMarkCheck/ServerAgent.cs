@@ -24,11 +24,13 @@ namespace AutoMarkCheck
         private string _userAgent = $"Auto Mark Check {Environment.OSVersion.Platform} {Environment.OSVersion.VersionString}/1.0"; //User agent will contain OS name and version
         public MarkCredentials Credentials;
         public string Hostname;
+        public bool MakeCoursesPublic;
 
-        public ServerAgent(MarkCredentials credentials, string hostname)
+        public ServerAgent(MarkCredentials credentials, string hostname, bool makeCoursesPublic = false)
         {
             Credentials = credentials;
             Hostname = hostname;
+            MakeCoursesPublic = makeCoursesPublic;
         }
 
         public async Task<bool> CheckCredentials()
@@ -105,7 +107,7 @@ namespace AutoMarkCheck
             byte[] beforeTokenBytes = CredentialManager.MarkCredentials.CredentialEncoding.GetBytes(beforeToken);
             byte[] afterTokenBytes = CredentialManager.MarkCredentials.CredentialEncoding.GetBytes(afterToken);
 
-            int dataLength = Credentials.EscapedBotTokenSize + beforeTokenBytes.Length + afterTokenBytes.Length;
+            int dataLength = Credentials.EscapedApiKeySize + beforeTokenBytes.Length + afterTokenBytes.Length;
 
             //Create request
             HttpWebRequest request = WebRequest.CreateHttp(API_URL);
@@ -127,7 +129,7 @@ namespace AutoMarkCheck
                 await stream.WriteAsync(beforeTokenBytes, 0, beforeTokenBytes.Length);
 
                 //Write token to stream character by character
-                IntPtr tokenPtr = Marshal.SecureStringToBSTR(Credentials.BotToken); //Convert SecureString token to BSTR and get the pointer
+                IntPtr tokenPtr = Marshal.SecureStringToBSTR(Credentials.ApiKey); //Convert SecureString token to BSTR and get the pointer
                 try
                 {
                     byte b = 1;
@@ -203,7 +205,7 @@ namespace AutoMarkCheck
                 jsonObject.uptime = uptime.ToString($"d' {dayStr}, 'hh':'mm':'ss"); //Format "1 day, 06:22:33" or "2 days, 20:37:09"
 
                 jsonObject.hostname = Hostname;
-
+                jsonObject.coursesPublic = MakeCoursesPublic;
                 //Using a place holder for the token so it can be injected into the upload stream to prevent storing the unencrypted token in memory.
                 jsonObject.token = TOKEN_PLACEHOLDER;
 

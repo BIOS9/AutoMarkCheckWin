@@ -18,13 +18,13 @@ namespace AutoMarkCheck.Helpers
     {
 #if DEBUG
         private const string VUW_CREDENTIAL_STORE_TARGET = "AutoMarkCheckGradesDebug";
-        private const string DISCORD_CREDENTIAL_STORE_TARGET = "AutoMarkCheckDiscordDebug";
+        private const string API_CREDENTIAL_STORE_TARGET = "AutoMarkCheckAPIDebug";
 #else
         private const string VUW_CREDENTIAL_STORE_TARGET = "AutoMarkCheckGrades";
-        private const string DISCORD_CREDENTIAL_STORE_TARGET = "AutoMarkCheckDiscord";
+        private const string API_CREDENTIAL_STORE_TARGET = "AutoMarkCheckAPI";
 #endif
         /**
-         * <summary>Credential class to store credentials for MyVUW and the Discord bot</summary>
+         * <summary>Credential class to store credentials for MyVUW and the bot API</summary>
          * <seealso cref="CredentialManager"/>
          */
         public class MarkCredentials
@@ -32,36 +32,36 @@ namespace AutoMarkCheck.Helpers
             public readonly static Encoding CredentialEncoding = Encoding.UTF8;
             public string Username;
             public SecureString Password = new SecureString();
-            public SecureString BotToken = new SecureString();
+            public SecureString ApiKey = new SecureString();
             public int EscapedPasswordSize;
-            public int EscapedBotTokenSize;
+            public int EscapedApiKeySize;
 
             #region Constructors
 
-            public MarkCredentials(string username, string password, string botToken)
+            public MarkCredentials(string username, string password, string apiKey)
             {
                 Username = username;
                 password.ToList().ForEach(x => Password.AppendChar(x));
-                botToken.ToList().ForEach(x => BotToken.AppendChar(x));
+                apiKey.ToList().ForEach(x => ApiKey.AppendChar(x));
 
-                //Calculate the size in bytes of the escaped password and token so they can be used later for an HTTP request without persisting in memory as a string
+                //Calculate the size in bytes of the escaped password and key so they can be used later for an HTTP request without persisting in memory as a string
                 string escapedPassword = Uri.EscapeDataString(password);
                 EscapedPasswordSize = CredentialEncoding.GetByteCount(escapedPassword);
 
-                //Bot token doesn't need to be URI escaped because it isnt sent as a POST FORM its sent as POST JSON
-                string jsonString = JsonConvert.ToString(botToken); //Token is uploaded in JSON so it must be escaped in both json then URI format
+                //API key doesn't need to be URI escaped because it isnt sent as a POST FORM its sent as POST JSON
+                string jsonString = JsonConvert.ToString(apiKey); //Key is uploaded in JSON so it must be escaped in json format
                 jsonString = jsonString.Remove(0, 1); //To remove the leading "
                 jsonString = jsonString.Remove(jsonString.Length - 1, 1); //To remove the trailing "
-                EscapedBotTokenSize = CredentialEncoding.GetByteCount(jsonString);
+                EscapedApiKeySize = CredentialEncoding.GetByteCount(jsonString);
                 Password.MakeReadOnly();
-                BotToken.MakeReadOnly();
+                ApiKey.MakeReadOnly();
             }
 
-            public MarkCredentials(string username, SecureString password, SecureString botToken)
+            public MarkCredentials(string username, SecureString password, SecureString apiKey)
             {
                 Username = username;
                 Password = password;
-                BotToken = botToken;
+                ApiKey = apiKey;
 
                 //Calculate password length
                 IntPtr passwordPtr = Marshal.SecureStringToBSTR(password); //Convert SecureString password to BSTR and get the pointer
@@ -86,8 +86,8 @@ namespace AutoMarkCheck.Helpers
                     Marshal.ZeroFreeBSTR(passwordPtr); //Securely clear password BSTR from memory
                 }
 
-                //Calculate token length
-                IntPtr tokenPtr = Marshal.SecureStringToBSTR(BotToken); //Convert SecureString token to BSTR and get the pointer
+                //Calculate key length
+                IntPtr keyPtr = Marshal.SecureStringToBSTR(ApiKey); //Convert SecureString key to BSTR and get the pointer
                 try
                 {
                     byte b = 1;
@@ -95,30 +95,30 @@ namespace AutoMarkCheck.Helpers
 
                     while (true) //Loop over characters in the BSTR
                     {
-                        b = Marshal.ReadByte(tokenPtr, i);
+                        b = Marshal.ReadByte(keyPtr, i);
                         if (b == 0) break; //If terminator character '\0' is hit exit loop
 
-                        string jsonString = JsonConvert.ToString((char)b); //Token is uploaded in JSON so it must be escaped in both json then URI format
+                        string jsonString = JsonConvert.ToString((char)b); //Key is uploaded in JSON so it must be escaped in json format
                         jsonString = jsonString.Remove(0, 1); //To remove the leading "
                         jsonString = jsonString.Remove(jsonString.Length - 1, 1); //To remove the trailing "
-                        EscapedBotTokenSize += CredentialEncoding.GetByteCount(jsonString); //Add the length to the credential length
+                        EscapedApiKeySize += CredentialEncoding.GetByteCount(jsonString); //Add the length to the credential length
 
                         i = i + 2;  // BSTR is unicode and occupies 2 bytes
                     }
                 }
                 finally
                 {
-                    Marshal.ZeroFreeBSTR(tokenPtr); //Securely clear password BSTR from memory
+                    Marshal.ZeroFreeBSTR(keyPtr); //Securely clear key BSTR from memory
                 }
                 Password.MakeReadOnly();
-                BotToken.MakeReadOnly();
+                ApiKey.MakeReadOnly();
             }
 
             #endregion
         }
 
         /**
-         * <summary>Returns all credentials that are used by AutoMarkCheck. Returns MyVUW account and Discord bot token.</summary>
+         * <summary>Returns all credentials that are used by AutoMarkCheck. Returns MyVUW account and API key.</summary>
          * <seealso cref="MarkCredentials"/>
          */
         public static MarkCredentials GetCredentials()
@@ -127,9 +127,9 @@ namespace AutoMarkCheck.Helpers
             {
                 //Get credentials from Windows credential store
                 var myVuwCredentials = new Credential { Target = VUW_CREDENTIAL_STORE_TARGET };
-                var discordCredentials = new Credential { Target = DISCORD_CREDENTIAL_STORE_TARGET };
+                var apiCredentials = new Credential { Target = API_CREDENTIAL_STORE_TARGET };
 
-                if (!myVuwCredentials.Load() || !discordCredentials.Load())
+                if (!myVuwCredentials.Load() || !apiCredentials.Load())
                 {
                     Logging.Log(Logging.LogLevel.WARNING, $"{nameof(Helpers)}.{nameof(CredentialManager)}.{nameof(GetCredentials)}", "There are no credentials saved for AutoMarkCheck.");
                     return null; //If loading fails
@@ -139,7 +139,7 @@ namespace AutoMarkCheck.Helpers
                 var creds = new MarkCredentials(
                     myVuwCredentials.Username,
                     myVuwCredentials.SecurePassword,
-                    discordCredentials.SecurePassword);
+                    apiCredentials.SecurePassword);
 
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(Helpers)}.{nameof(CredentialManager)}.{nameof(GetCredentials)}", "Successfully got credentials from the credential store.");
 
@@ -163,7 +163,7 @@ namespace AutoMarkCheck.Helpers
             try
             {
                 //Create and save MyVictoria credential object
-                var myVuwCredentials = new Credential
+                new Credential
                 {
                     Target = VUW_CREDENTIAL_STORE_TARGET,
                     PersistanceType = PersistanceType.LocalComputer,
@@ -173,15 +173,15 @@ namespace AutoMarkCheck.Helpers
                     Description = "MyVictoria user credentials for AutoMarkCheck bot."
                 }.Save();
 
-                //Create and save Discord bot credential object
-                var discordCredentials = new Credential
+                //Create and save API credential object
+                new Credential
                 {
-                    Target = DISCORD_CREDENTIAL_STORE_TARGET,
+                    Target = API_CREDENTIAL_STORE_TARGET,
                     PersistanceType = PersistanceType.LocalComputer,
-                    Username = "Discord",
-                    SecurePassword = credentials.BotToken,
+                    Username = "API",
+                    SecurePassword = credentials.ApiKey,
                     Type = CredentialType.Generic,
-                    Description = "Discord token for AutoMarkCheck bot."
+                    Description = "API key for AutoMarkCheck bot."
                 }.Save();
 
                 Logging.Log(Logging.LogLevel.INFO, $"{nameof(Helpers)}.{nameof(CredentialManager)}.{nameof(SetCredentials)}", "New credentials saved to the credential store.");
@@ -200,8 +200,8 @@ namespace AutoMarkCheck.Helpers
             try
             {
                 Credential myVuwCredentials = new Credential { Target = VUW_CREDENTIAL_STORE_TARGET };
-                Credential discordCredentials = new Credential { Target = DISCORD_CREDENTIAL_STORE_TARGET };
-                bool deleted = myVuwCredentials.Delete() && discordCredentials.Delete();
+                Credential apiCredentials = new Credential { Target = API_CREDENTIAL_STORE_TARGET };
+                bool deleted = myVuwCredentials.Delete() && apiCredentials.Delete();
 
                 if(deleted)
                     Logging.Log(Logging.LogLevel.WARNING, $"{nameof(Helpers)}.{nameof(CredentialManager)}.{nameof(DeleteCredentials)}", "One of the credentials may have not been deleted.");
