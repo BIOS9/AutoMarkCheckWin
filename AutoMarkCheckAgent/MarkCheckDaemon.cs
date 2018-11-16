@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static AutoMarkCheck.Helpers.Logging;
 
 namespace AutoMarkCheckAgent
 {
@@ -18,7 +19,14 @@ namespace AutoMarkCheckAgent
 
         private void LoadNotifyIcon()
         {
+            try
+            {
 
+            }
+            catch(Exception ex)
+            {
+                Logging.Log(LogLevel.ERROR, $"{nameof(AutoMarkCheckAgent)}.{nameof(MarkCheckDaemon)}.{nameof(LoadNotifyIcon)}", "Failed to load tray icon.", ex);
+            }
         }
     }
 }

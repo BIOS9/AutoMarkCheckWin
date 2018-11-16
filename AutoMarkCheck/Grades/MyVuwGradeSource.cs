@@ -76,7 +76,7 @@ namespace AutoMarkCheck.Grades
         {
             try
             {
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetGrades)}", "Grade grab started.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetGrades)}", "Grade grab started.");
 
                 PersistentWebClient client = await Login(); //Create logged in session
 
@@ -94,18 +94,18 @@ namespace AutoMarkCheck.Grades
                 if (grades.Count == 0) //If no courses were found
                 {
                     _setYearOnNext = true;
-                    Logging.Log(Logging.LogLevel.WARNING, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetGrades)}", "No courses were found, Term/Year wil be set to current year on next request.");
+                    Logging.Log(Logging.LogLevel.WARNING, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetGrades)}", "No courses were found, Term/Year wil be set to current year on next request.");
                 }
                 else
-                    Logging.Log(Logging.LogLevel.INFO, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetGrades)}", $"Successfully got {grades.Count} grades from MyVUW.");
+                    Logging.Log(Logging.LogLevel.INFO, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetGrades)}", $"Successfully got {grades.Count} grades from MyVUW.");
 
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetGrades)}", "Grade grab finished.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetGrades)}", "Grade grab finished.");
 
                 return grades;
             }
             catch (Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetGrades)}", "Failed to get grades.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetGrades)}", "Failed to get grades.", ex);
                 return new List<CourseInfo>(); //Return empty list
             }
         }
@@ -134,13 +134,13 @@ namespace AutoMarkCheck.Grades
                         });
                     }
 
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(ParseGradeHtml)}", "Successfully parsed grades HTML.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(ParseGradeHtml)}", "Successfully parsed grades HTML.");
 
                 return grades;
             }
             catch (Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(ParseGradeHtml)}", "Failed to parsed grades HTML.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(ParseGradeHtml)}", "Failed to parsed grades HTML.", ex);
                 return new List<CourseInfo>();
             }
         }
@@ -154,7 +154,7 @@ namespace AutoMarkCheck.Grades
         {
             try
             {
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(Login)}", "Login started");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(Login)}", "Login started");
                 Tuple<string, PersistentWebClient> loginParams = await GetLoginParams(); //Get login parameters such as session cookies and UUID
                 PersistentWebClient client = loginParams.Item2;
 
@@ -178,11 +178,11 @@ namespace AutoMarkCheck.Grades
                 request.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip, deflate");
                 request.Headers.Add(HttpRequestHeader.CacheControl, "no-cache");
 
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(Login)}", "Login request opened.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(Login)}", "Login request opened.");
 
                 using (Stream stream = await request.GetRequestStreamAsync())
                 {
-                    Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(Login)}", "Writing login credentials.");
+                    Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(Login)}", "Writing login credentials.");
                     //Write UUID, Username and the start of the password
                     await stream.WriteAsync(uuidData, 0, uuidData.Length);
                     await stream.WriteAsync(userData, 0, userData.Length);
@@ -213,7 +213,7 @@ namespace AutoMarkCheck.Grades
                     }
                 }
 
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(Login)}", "Getting login response.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(Login)}", "Getting login response.");
 
                 //Get the login response
                 using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
@@ -222,7 +222,7 @@ namespace AutoMarkCheck.Grades
 
                     if (respStr.Contains("Failed")) //Check if page contains "Fail"
                     {
-                        Logging.Log(Logging.LogLevel.ERROR, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(Login)}", "Login was rejected by MyVictoria for an unkown reason. Credentials may be incorrect.");
+                        Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(Login)}", "Login was rejected by MyVictoria for an unkown reason. Credentials may be incorrect.");
                         throw new AuthenticationException("Login failure returned from MyVictoria, credentials may be incorrect.");
                     }
 
@@ -233,7 +233,7 @@ namespace AutoMarkCheck.Grades
                 await client.Get(BaseUrl + LoginOkPath);
                 await client.Get(BaseUrl + LoginNextPath);
 
-                Logging.Log(Logging.LogLevel.INFO, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(Login)}", "Successfully logged into MyVuw");
+                Logging.Log(Logging.LogLevel.INFO, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(Login)}", "Successfully logged into MyVuw");
 
                 return client;
             }
@@ -251,20 +251,20 @@ namespace AutoMarkCheck.Grades
         {
             try
             {
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetLoginParams)}", "Getting login parameters.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetLoginParams)}", "Getting login parameters.");
 
                 PersistentWebClient client = new PersistentWebClient();
 
                 string pageText = await client.Get(BaseUrl + LoginPagePath); //Download page text
                 string uuid = Regex.Match(pageText, LoginUuidPattern).Groups[1].Value; //Find the UUID inside the HTML/JS
 
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetLoginParams)}", "Finished getting login parameters");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetLoginParams)}", "Finished getting login parameters");
 
                 return new Tuple<string, PersistentWebClient>(uuid, client); //Return UUID and client
             }
             catch (Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetLoginParams)}", "Error getting login parameters.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(GetLoginParams)}", "Error getting login parameters.", ex);
 
                 throw new WebException("Failed to load or parse MyVictoria login page.", ex);
             }
@@ -278,7 +278,7 @@ namespace AutoMarkCheck.Grades
         {
             try
             {
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(SetGradeYear)}", $"Started setting grade year to {DateTime.Now.Year}01.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(SetGradeYear)}", $"Started setting grade year to {DateTime.Now.Year}01.");
                 //The site wont change the setting until you browse to these urls
                 await client.Get(BaseUrl + HomePath);
                 await client.Get(BaseUrl + MyStudyPath);
@@ -300,11 +300,11 @@ namespace AutoMarkCheck.Grades
                     { "TERMLIST", DateTime.Now.Year + "01" },
                 });
 
-                Logging.Log(Logging.LogLevel.INFO, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(SetGradeYear)}", $"Grade year has been successfully set to {DateTime.Now.Year}01.");
+                Logging.Log(Logging.LogLevel.INFO, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(SetGradeYear)}", $"Grade year has been successfully set to {DateTime.Now.Year}01.");
             }
             catch (Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(SetGradeYear)}", $"Failed to set grade year to {DateTime.Now.Year}01.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(SetGradeYear)}", $"Failed to set grade year to {DateTime.Now.Year}01.", ex);
             }
         }
     }

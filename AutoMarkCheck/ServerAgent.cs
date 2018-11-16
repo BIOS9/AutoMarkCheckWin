@@ -51,18 +51,18 @@ namespace AutoMarkCheck
         {
             try
             {
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Grade report started.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Grade report started.");
 
                 string jsonData = SerializeData(courses);
                 Clipboard.SetText(jsonData);
                 await Upload(jsonData);
 
-                Logging.Log(Logging.LogLevel.INFO, $"{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Successfully reported grades to bot server.");
+                Logging.Log(Logging.LogLevel.INFO, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Successfully reported grades to bot server.");
                 return true;
             }
             catch (Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Failed to report grades to bot server.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Failed to report grades to bot server.", ex);
                 return false;
             }
         }
@@ -78,17 +78,17 @@ namespace AutoMarkCheck
         {
             try
             {
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(ReportError)}", "Error report started.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(ReportError)}", "Error report started.");
 
                 string jsonData = SerializeData(null, error);
                 await Upload(jsonData);
 
-                Logging.Log(Logging.LogLevel.INFO, $"{nameof(ServerAgent)}.{nameof(ReportError)}", "Successfully reported error to bot server.");
+                Logging.Log(Logging.LogLevel.INFO, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(ReportError)}", "Successfully reported error to bot server.");
                 return true;
             }
             catch (Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(ServerAgent)}.{nameof(ReportError)}", "Failed to report error to bot server.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(ReportError)}", "Failed to report error to bot server.", ex);
                 return false;
             }
         }
@@ -100,7 +100,7 @@ namespace AutoMarkCheck
          */
         private async Task Upload(string jsonData)
         {
-            Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(Upload)}", "Report upload started.");
+            Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(Upload)}", "Report upload started.");
 
             string beforeToken = jsonData.Substring(0, jsonData.IndexOf(TokenPlaceholder));
             string afterToken = jsonData.Substring(jsonData.IndexOf(TokenPlaceholder) + TokenPlaceholder.Length);
@@ -123,10 +123,10 @@ namespace AutoMarkCheck
             request.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip, deflate");
             request.Headers.Add(HttpRequestHeader.CacheControl, "no-cache");
 
-            Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(Upload)}", "Starting reuqest.");
+            Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(Upload)}", "Starting reuqest.");
             using (Stream stream = await request.GetRequestStreamAsync())
             {
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(Upload)}", "Writing login credentials.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(Upload)}", "Writing login credentials.");
                 //Write first part of JSON before token
                 await stream.WriteAsync(beforeTokenBytes, 0, beforeTokenBytes.Length);
 
@@ -159,25 +159,25 @@ namespace AutoMarkCheck
                 await stream.WriteAsync(afterTokenBytes, 0, afterTokenBytes.Length); //Write the end of the JSON
             }
 
-            Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(Upload)}", "Getting report response.");
+            Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(Upload)}", "Getting report response.");
 
             //Get the report response
             using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
             {
                 if (response.StatusCode == HttpStatusCode.OK)
-                    Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(Upload)}", "Successfully uploaded report to server.");
+                    Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(Upload)}", "Successfully uploaded report to server.");
                 else
                 {
                     string responseStr;
                     using (Stream stream = response.GetResponseStream())
                     using (StreamReader reader = new StreamReader(stream))
                         responseStr = await reader.ReadToEndAsync();
-                    Logging.Log(Logging.LogLevel.ERROR, $"{nameof(ServerAgent)}.{nameof(Upload)}", $"Failed to upload report to bot server. Server returned: {response.StatusCode} {response.StatusDescription} : {responseStr}");
+                    Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(Upload)}", $"Failed to upload report to bot server. Server returned: {response.StatusCode} {response.StatusDescription} : {responseStr}");
                     throw new Exception("Report upload failed.");
                 }
             }
 
-            Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(Upload)}", "Report upload finished.");
+            Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(Upload)}", "Report upload finished.");
         }
 
         /**
@@ -216,7 +216,7 @@ namespace AutoMarkCheck
             }
             catch(Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(ServerAgent)}.{nameof(SerializeData)}", "Failed to serialize report data.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(SerializeData)}", "Failed to serialize report data.", ex);
                 throw new JsonSerializationException("JSON serialization failed.");
             }
         }
