@@ -29,6 +29,7 @@ namespace AutoMarkCheckAgent
         {
             InitializeComponent();
             animator = new AnimationHelper(this);
+            animator.Opacity(0, UsernameLabel, UsernameTextBox, PasswordLabel, PasswordTextBox, ApiKeyLabel, ApiKeyTextBox, PublicCheckBox, SubmitButton);
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -42,18 +43,19 @@ namespace AutoMarkCheckAgent
             BlurHelper.BlurWindow(this);
             animator.Animate("Show0.25", ExitButton, TitleLabel, TradeMarkLabel);
 
-            animator.Opacity(0, UsernameLabel, UsernameTextBox, PasswordLabel, PasswordTextBox, BotTokenLabel, BotTokenTextBox, SubmitButton);
             animator.DelayAnimate(25, "Show1Fast", UsernameLabel);
             animator.DelayAnimate(50, "Show1Fast", UsernameTextBox);
             animator.DelayAct(50, () => animator.Opacity(1, UsernameLabel, UsernameTextBox));
             animator.DelayAnimate(75, "Show1Fast", PasswordLabel);
             animator.DelayAnimate(100, "Show1Fast", PasswordTextBox);
             animator.DelayAct(100, () => animator.Opacity(1, PasswordLabel, PasswordTextBox));
-            animator.DelayAnimate(125, "Show1Fast", BotTokenLabel);
-            animator.DelayAnimate(150, "Show1Fast", BotTokenTextBox);
-            animator.DelayAct(150, () => animator.Opacity(1, BotTokenLabel, BotTokenTextBox));
-            animator.DelayAnimate(175, "Show1Fast", SubmitButton);
-            animator.DelayAct(175, () => animator.Opacity(1, SubmitButton, BotTokenTextBox));
+            animator.DelayAnimate(125, "Show1Fast", ApiKeyLabel);
+            animator.DelayAnimate(150, "Show1Fast", ApiKeyTextBox);
+            animator.DelayAct(150, () => animator.Opacity(1, ApiKeyLabel, ApiKeyTextBox));
+            animator.DelayAnimate(175, "Show1Fast", PublicCheckBox);
+            animator.DelayAct(175, () => animator.Opacity(1, PublicCheckBox));
+            animator.DelayAnimate(200, "Show1Fast", SubmitButton);
+            animator.DelayAct(200, () => animator.Opacity(1, SubmitButton, ApiKeyTextBox));
         }
 
         private void ExitButton_Click(object sender, RoutedEventArgs e)
