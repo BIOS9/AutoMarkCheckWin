@@ -24,11 +24,11 @@ namespace AutoMarkCheckAgent
     /// </summary>
     public partial class MainWindow : Window
     {
-        AnimationHelper _animator;
-        bool _passwordChanged = false;
-        bool _apiKeyChanged = false;
-        SecureString _password;
-        SecureString _apiKey;
+        private AnimationHelper _animator;
+        private bool _passwordChanged = false;
+        private bool _apiKeyChanged = false;
+        private SecureString _password;
+        private SecureString _apiKey;
 
         public MainWindow()
         {

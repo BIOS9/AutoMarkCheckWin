@@ -9,10 +9,16 @@ namespace AutoMarkCheckAgent
 {
     public class MarkCheckDaemon
     {
-        NotifyIcon notifyIcon = new NotifyIcon();
+        private NotifyIcon notifyIcon;
+
         public MarkCheckDaemon()
         {
-            
+            LoadNotifyIcon();
+        }
+
+        private void LoadNotifyIcon()
+        {
+
         }
     }
 }

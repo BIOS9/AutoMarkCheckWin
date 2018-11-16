@@ -18,6 +18,7 @@ namespace AutoMarkCheckAgent
         [STAThread]
         public static void Main()
         {
+            Logging.Initialize();
             Daemon = new MarkCheckDaemon();
         }
     }
