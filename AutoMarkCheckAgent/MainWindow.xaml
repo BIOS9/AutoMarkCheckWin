@@ -5,7 +5,30 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AutoMarkCheckAgent"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="Auto Mark Check" 
+        Height="329.885" 
+        Width="249.253" 
+        ResizeMode="NoResize" 
+        WindowStyle="None" 
+        MouseDown="Window_MouseDown" 
+        Loaded="Window_Loaded"
+        AllowsTransparency="True"
+        BorderThickness="1"
+        WindowStartupLocation="CenterScreen"
+        BorderBrush="#FF006CAD" 
+        SnapsToDevicePixels="True">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/GUI/Styles/FadeButton.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/GUI/Styles/MetroButton.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/GUI/Animations.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Window.Background>
+        <SolidColorBrush Color="#FF0F0F0F" Opacity="0.85"/>
+    </Window.Background>
     <Grid>
         
     </Grid>
