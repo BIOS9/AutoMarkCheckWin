@@ -1,26 +1,34 @@
-﻿using AutoMarkCheck.Grades;
+﻿using AutoMarkCheck;
+using AutoMarkCheck.Grades;
 using AutoMarkCheck.Helpers;
 using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
-using static AutoMarkCheck.Grades.MyVuwGradeSource;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
 
-namespace AutoMarkCheck.UI
+namespace AutoMarkCheckAgent
 {
-    public partial class MainForm : Form
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
     {
-        public MainForm()
+        public MainWindow()
         {
             InitializeComponent();
-            Logging.tempForm = this;
         }
 
-        private async void button1_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private async void MainForm_Load(object sender, EventArgs e)
+        private async void test()
         {
             var creds = CredentialManager.GetCredentials();
             if (creds == null)

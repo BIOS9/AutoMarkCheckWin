@@ -10,7 +10,7 @@ namespace AutoMarkCheck.Grades
     /**
      * <summary>Interface for grade sources. Adds standardization to grade sources through enforced methods.</summary>
      */
-    interface IGradeSource
+    public interface IGradeSource
     {
         Task<List<CourseInfo>> GetGrades();
         Task<bool> CheckCredentials();

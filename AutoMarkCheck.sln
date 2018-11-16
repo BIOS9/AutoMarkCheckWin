@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoMarkCheckAgent", "AutoMarkCheckAgent\AutoMarkCheckAgent.csproj", "{8046E663-BFA1-44EA-92A1-E936CB9300C5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,10 @@ Global
 		{590327A7-8E92-4D57-A0D4-DE619F86BB31}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{590327A7-8E92-4D57-A0D4-DE619F86BB31}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{590327A7-8E92-4D57-A0D4-DE619F86BB31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8046E663-BFA1-44EA-92A1-E936CB9300C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8046E663-BFA1-44EA-92A1-E936CB9300C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8046E663-BFA1-44EA-92A1-E936CB9300C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8046E663-BFA1-44EA-92A1-E936CB9300C5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

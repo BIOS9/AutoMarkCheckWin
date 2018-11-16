@@ -8,8 +8,6 @@ namespace AutoMarkCheck.Helpers
      */
     public class Logging
     {
-        public static UI.MainForm tempForm;
-
         public enum LogLevel
         {
             DEBUG,
@@ -19,7 +17,9 @@ namespace AutoMarkCheck.Helpers
         }
 
         public static LogLevel LoggingLevel = LogLevel.DEBUG; //Ignore all logs under the current level
-        
+
+        private static Action<LogLevel, string, string, Exception> _loggingCallback = null;
+
         /**
          * <summary>Log an event of some sort.</summary>
          * <param name="level">Severity of the event. If this is lower than the current logging level, the event will not be saved.</param>
@@ -31,36 +31,29 @@ namespace AutoMarkCheck.Helpers
         {
             try
             {
-                //Console.Write($"[{DateTime.Now.ToString()}] [{level.ToString()}] <{source}> \"{message}\"");
-                //if(exception != null)
-                //{
-                //    Console.ForegroundColor = ConsoleColor.Red;
-                //    Console.Write(exception.Message);
-                //    Console.ResetColor();
-                //}
-                //Console.WriteLine();
-
-                Debug.Write($"[{DateTime.Now.ToString()}] [{level.ToString()}] <{source}> \"{message}\"");
-                if (exception != null)
+                if (_loggingCallback == null)
                 {
-                    Debug.Write(exception.Message);
-                }
-                Debug.WriteLine("");
-
-                if (tempForm != null)
-                {
-                    tempForm.richTextBox1.AppendText($"[{DateTime.Now.ToString()}] [{level.ToString()}] <{source}> \"{message}\"");
+                    Console.Write($"[{DateTime.Now.ToString()}] [{level.ToString()}] <{source}> \"{message}\"");
                     if (exception != null)
                     {
-                        tempForm.richTextBox1.AppendText(" Exception: \"" + exception.Message + " - " + exception.StackTrace + "\"");
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write(exception.Message);
+                        Console.ResetColor();
                     }
-                    tempForm.richTextBox1.AppendText(Environment.NewLine);
+                    Console.WriteLine();
                 }
+                else
+                    _loggingCallback(level, source, message, exception);
             }
             catch
             {
 
             }
+        }
+
+        public static void SetLogCallback(Action<LogLevel, string, string, Exception> callback)
+        {
+            _loggingCallback = callback;
         }
     }
 }
