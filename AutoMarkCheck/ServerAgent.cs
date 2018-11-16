@@ -51,7 +51,7 @@ namespace AutoMarkCheck
             {
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Grade report started.");
 
-                string jsonData = SerializeData(courses, Hostname);
+                string jsonData = SerializeData(courses);
                 Clipboard.SetText(jsonData);
                 await Upload(jsonData);
 
@@ -206,6 +206,7 @@ namespace AutoMarkCheck
 
                 jsonObject.hostname = Hostname;
                 jsonObject.coursesPublic = MakeCoursesPublic;
+
                 //Using a place holder for the token so it can be injected into the upload stream to prevent storing the unencrypted token in memory.
                 jsonObject.token = TOKEN_PLACEHOLDER;
 
