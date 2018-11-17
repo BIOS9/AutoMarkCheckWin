@@ -21,6 +21,7 @@ namespace AutoMarkCheckAgent
         private Thread _runThread;
         private Thread _notifyIconThread;
         private bool _run = true;
+        private bool _guiShowing = false;
         private DateTime _lastGradeCheck = DateTime.MinValue;
 
         private const int RunThreadInterval = 1000;
@@ -59,8 +60,9 @@ namespace AutoMarkCheckAgent
                 _notifyIconThread = new Thread(() =>
                 {
                     _notifyIconContextMenu = new ContextMenu();
-                    _notifyIconContextMenu.MenuItems.Add("Exit", (s, e) => Exit());
                     _notifyIconContextMenu.MenuItems.Add("Show", (s, e) => Show());
+                    _notifyIconContextMenu.MenuItems.Add("-");
+                    _notifyIconContextMenu.MenuItems.Add("Exit", (s, e) => Exit());
 
                     _notifyIcon = new NotifyIcon();
                     _notifyIcon.Icon = new Icon(NotifyIconImagePath);
@@ -69,11 +71,11 @@ namespace AutoMarkCheckAgent
                     _notifyIcon.Visible = true;
 
                     Application.Run();
-
-                    GC.Collect(); //Collect initial memory spike when Application.Run gets memory allocated.
                 });
                 _notifyIconThread.SetApartmentState(ApartmentState.STA); //Single threaded apartment for GUI
                 _notifyIconThread.Start();
+
+                GC.Collect(); //Collect initial memory spike when Application.Run gets memory allocated.
 
                 Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(MarkCheckDaemon)}.{nameof(LoadNotifyIcon)}", "Successfully loaded tray icon.");
             }
@@ -99,13 +101,30 @@ namespace AutoMarkCheckAgent
 
         private void Show()
         {
-
+            try
+            {
+                Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(MarkCheckDaemon)}.{nameof(Show)}", "Opening GUI.");
+                _guiShowing = true;
+                MainWindow mainWindow = new MainWindow();
+                mainWindow.ShowDialog();
+                _guiShowing = false;
+                GC.Collect(); //Collect memory after window closes
+                Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(MarkCheckDaemon)}.{nameof(Show)}", "Closed GUI.");
+            }
+            catch(Exception ex)
+            {
+                Logging.Log(LogLevel.ERROR, $"{nameof(AutoMarkCheckAgent)}.{nameof(MarkCheckDaemon)}.{nameof(Show)}", "Error loading GUI.", ex);
+                MessageBox.Show("There was an error loading the GUI: \n" + ex.Message + "\n\nCheck the log file for a more detailed error.", "Auto Mark Check Agent", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void Run()
         {
             while (_run)
             {
+                Thread.Sleep(RunThreadInterval);
+                if (_guiShowing) continue; //Dont perform checking while the GUI is open because it could conflict with the check button.
+
                 try
                 {
                     
@@ -114,7 +133,6 @@ namespace AutoMarkCheckAgent
                 {
                     Logging.Log(LogLevel.ERROR, $"{nameof(AutoMarkCheckAgent)}.{nameof(MarkCheckDaemon)}.{nameof(Run)}", "Error in main thread.", ex);
                 }
-                Thread.Sleep(RunThreadInterval);
             }
         }
     }
