@@ -1,4 +1,3 @@
-
 #include <windows.h>
 #include <shellapi.h>
 #include <stdio.h>
@@ -39,7 +38,7 @@ void InitNotifyIconData()
 	g_notifyIconData.uID = ID_TRAY_APP_ICON;
 
 	// Set up flags.
-	g_notifyIconData.uFlags = 
+	g_notifyIconData.uFlags =
 		NIF_ICON |		// An icon will be specified
 		NIF_MESSAGE |	// Request window message to be sent to our WNDPROC
 		NIF_TIP;		// A tooltip will be specified
@@ -105,7 +104,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		g_menu = CreatePopupMenu();
 
 		AppendMenu(g_menu, MF_STRING, ID_TRAY_SHOW_CONTEXT_MENU_ITEM, TEXT("Show"));
-		AppendMenu(g_menu, MF_SEPARATOR | MF_BYPOSITION, ID_TRAY_SEPARATOR_CONTEXT_MENU_ITEM, NULL);
+		AppendMenu(g_menu, MF_SEPARATOR | MF_BYPOSITION, ID_TRAY_SEPARATOR_CONTEXT_MENU_ITEM, NULL); //Add separator
 		AppendMenu(g_menu, MF_STRING, ID_TRAY_EXIT_CONTEXT_MENU_ITEM, TEXT("Exit"));
 
 		break;
@@ -138,7 +137,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			UINT clicked = TrackPopupMenu(
 
 				g_menu,
-				TPM_RETURNCMD | TPM_NONOTIFY, // don't send me WM_COMMAND messages about this window, instead return the identifier of the clicked menu item
+				TPM_RETURNCMD | TPM_NONOTIFY, // Don't send me WM_COMMAND messages about this window, instead return the identifier of the clicked menu item
 				curPoint.x,
 				curPoint.y,
 				0,
@@ -150,6 +149,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (clicked == ID_TRAY_EXIT_CONTEXT_MENU_ITEM)
 			{
 				PostQuitMessage(0);
+			}
+			else if (clicked == ID_TRAY_SHOW_CONTEXT_MENU_ITEM)
+			{
+				system("notepad.exe");
 			}
 		}
 	}

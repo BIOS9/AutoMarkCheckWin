@@ -16,21 +16,15 @@ namespace AutoMarkCheckAgent
         public const int DefaultGradeCheckingInterval = 1800; //Value in seconds, 30 minutes
         public const int MaxGradeCheckingInterval = 43200; //Value in seconds, 12 hours
 
-        private NotifyIcon _notifyIcon;
-        private ContextMenu _notifyIconContextMenu;
         private Thread _runThread;
-        private Thread _notifyIconThread;
         private bool _run = true;
         private bool _guiShowing = false;
         private DateTime _lastGradeCheck = DateTime.MinValue;
 
         private const int RunThreadInterval = 1000;
-        private const string NotifyIconImagePath = "Resources/tray.ico";
-        private const string NotifyIconText = "Auto Mark Check Agent";
 
         public MarkCheckDaemon()
         {
-            LoadNotifyIcon();
             _runThread = new Thread(Run);
             _runThread.Start();
         }
@@ -50,50 +44,9 @@ namespace AutoMarkCheckAgent
             return true;
         }
 
-        /**
-         * <summary>Attempts to load the notify/tray icon and add the context menu.</summary>
-         */
-        private void LoadNotifyIcon()
-        {
-            try
-            {
-                _notifyIconThread = new Thread(() =>
-                {
-                    _notifyIconContextMenu = new ContextMenu();
-                    _notifyIconContextMenu.MenuItems.Add("Show", (s, e) => Show());
-                    _notifyIconContextMenu.MenuItems.Add("-");
-                    _notifyIconContextMenu.MenuItems.Add("Exit", (s, e) => Exit());
-
-                    _notifyIcon = new NotifyIcon();
-                    _notifyIcon.Icon = new Icon(NotifyIconImagePath);
-                    _notifyIcon.ContextMenu = _notifyIconContextMenu;
-                    _notifyIcon.Text = NotifyIconText;
-                    _notifyIcon.Visible = true;
-
-                    Application.Run();
-                });
-                _notifyIconThread.SetApartmentState(ApartmentState.STA); //Single threaded apartment for GUI
-                _notifyIconThread.Start();
-
-                GC.Collect(); //Collect initial memory spike when Application.Run gets memory allocated.
-
-                Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(MarkCheckDaemon)}.{nameof(LoadNotifyIcon)}", "Successfully loaded tray icon.");
-            }
-            catch (Exception ex)
-            {
-                Logging.Log(LogLevel.ERROR, $"{nameof(AutoMarkCheckAgent)}.{nameof(MarkCheckDaemon)}.{nameof(LoadNotifyIcon)}", "Failed to load tray icon.", ex);
-            }
-        }
-
         private void Exit()
         {
             Logging.Log(LogLevel.INFO, $"{nameof(AutoMarkCheckAgent)}.{nameof(MarkCheckDaemon)}.{nameof(Exit)}", "Application shutting down.");
-
-            if (_notifyIcon != null)
-            {
-                _notifyIcon.Visible = false;
-                _notifyIcon.Icon?.Dispose();
-            }
 
             _run = false;
             Application.Exit();
