@@ -38,7 +38,29 @@ namespace AutoMarkCheckAgent
             else
             {
                 System.Windows.MessageBox.Show("AYE");
-                CheckGrades().Wait();
+
+                if(!Settings.CheckingEnabled)
+                {
+                    Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(Main)}", "Aborting mark check because checking is disabled.");
+                    return;
+                }
+
+                if ((DateTime.Now - Settings.LastGradeCheck).TotalSeconds > Settings.GradeCheckInterval)
+                {
+                    CheckGrades(Settings.CustomHostname, Settings.CoursesPublic).Wait();
+
+                    try
+                    {
+                        Settings.LastGradeCheck = DateTime.Now;
+                        Settings.Save(Settings).Wait();
+                    }
+                    catch { }
+                }
+                else
+                {
+                    Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(Main)}", "Aborting mark check because interval has not passed.");
+                    System.Windows.MessageBox.Show("Delayed");
+                }
             }
         }
 
@@ -58,7 +80,7 @@ namespace AutoMarkCheckAgent
             }
         }
 
-        private static async Task CheckGrades()
+        private static async Task CheckGrades(string hostname, bool coursesPublic)
         {
             AutoMarkCheck.ServerAgent agent = null;
             AutoMarkCheck.Helpers.CredentialManager.MarkCredentials credentials;
@@ -69,7 +91,7 @@ namespace AutoMarkCheckAgent
                 credentials = AutoMarkCheck.Helpers.CredentialManager.GetCredentials();
                 if (credentials != null)
                 {
-                    agent = new AutoMarkCheck.ServerAgent(credentials, "CoolHost 😎", false);
+                    agent = new AutoMarkCheck.ServerAgent(credentials, hostname, coursesPublic);
                     gradeSource = new AutoMarkCheck.Grades.MyVuwGradeSource(credentials);
                     List<AutoMarkCheck.Grades.CourseInfo> grades = await gradeSource.GetGrades();
                     if (grades == null || grades.Count == 0)

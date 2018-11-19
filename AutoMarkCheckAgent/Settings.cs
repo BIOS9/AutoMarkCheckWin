@@ -17,6 +17,7 @@ namespace AutoMarkCheckAgent
         public bool CheckingEnabled = true;
         public bool CoursesPublic = false ;
         public int GradeCheckInterval = 300; // 5 minutes
+        public string CustomHostname = Environment.MachineName;
         public DateTime LastGradeCheck = DateTime.MinValue;
 
         public static async Task Save(Settings settings)
@@ -25,7 +26,7 @@ namespace AutoMarkCheckAgent
             {
                 Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(Settings)}.{nameof(Save)}", "Starting settings save.");
 
-                string json = JsonConvert.SerializeObject(settings); // Convert settings object into json string
+                string json = JsonConvert.SerializeObject(settings, Formatting.Indented); // Convert settings object into json string
 
                 //Write string to settings file
                 using (FileStream stream = new FileStream(FileName, FileMode.Create, FileAccess.Write, FileShare.Read))
