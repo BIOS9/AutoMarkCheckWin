@@ -32,10 +32,7 @@ namespace AutoMarkCheck.Grades
 
         private const string LoginUuidPattern = "(?:document.cplogin.uuid.value=\")([\\da-zA-Z-]+)(?:\";)";
 
-        private readonly static TimeSpan YearSetInterval = TimeSpan.FromHours(6); //Sets the year to the current year, just in case the user has an old year selected and the old results are coming up.
-
         private bool _setYearOnNext = false; //Whether to set the default grade year on the next request
-        private DateTime _lastYearSet = DateTime.MinValue;
         private MarkCredentials _credentials;
 
         public MyVuwGradeSource(MarkCredentials credentials)
@@ -80,10 +77,9 @@ namespace AutoMarkCheck.Grades
 
                 PersistentWebClient client = await Login(); //Create logged in session
 
-                if (_setYearOnNext || DateTime.Now - _lastYearSet > YearSetInterval)
+                if (_setYearOnNext)
                 {
                     _setYearOnNext = false;
-                    _lastYearSet = DateTime.Now;
                     await SetGradeYear(client); //Set year for displayed grades to current year
                 }
 
@@ -233,7 +229,7 @@ namespace AutoMarkCheck.Grades
                 await client.Get(BaseUrl + LoginOkPath);
                 await client.Get(BaseUrl + LoginNextPath);
 
-                Logging.Log(Logging.LogLevel.INFO, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(Login)}", "Successfully logged into MyVuw");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(Login)}", "Successfully logged into MyVuw");
 
                 return client;
             }

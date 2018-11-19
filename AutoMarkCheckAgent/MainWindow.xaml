@@ -67,7 +67,7 @@
                 <SolidColorBrush Color="White" Opacity="0.75"/>
             </PasswordBox.Foreground>
         </PasswordBox>
-        <CheckBox x:Name="PublicCheckBox" Style="{StaticResource MetroCheckBox}" Content="Make courses public" BorderBrush="#FF006CAD" Foreground="White" Margin="13,284,0,0" Cursor="Hand" Padding="4,-1,0,0" IsChecked="False" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="14" ToolTip="Allow the Discord bot to show the courses you are taking.">
+        <CheckBox x:Name="PublicCheckBox" Style="{StaticResource MetroCheckBox}" Content="Make courses public" BorderBrush="#FF006CAD" Foreground="White" Margin="13,284,0,0" Cursor="Hand" Padding="4,-1,0,0" IsChecked="False" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="14" ToolTip="Allow the Discord bot to show the courses you are taking." Unchecked="PublicCheckBox_Unchecked" Checked="PublicCheckBox_Checked">
             <CheckBox.Background>
                 <SolidColorBrush Color="Black" Opacity="0.75"/>
             </CheckBox.Background>
@@ -87,7 +87,7 @@
                 <SolidColorBrush Color="Black" Opacity="0.75"/>
             </Button.Background>
         </Button>
-        <CheckBox x:Name="EnableCheckBox" Style="{StaticResource MetroCheckBox}" Content="Enable Client" BorderBrush="#FF006CAD" Foreground="White" Margin="13,56,0,0" Cursor="Hand" Padding="0" IsChecked="True" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="14" ToolTip="Allow the Discord bot to show the courses you are taking.">
+        <CheckBox x:Name="EnableCheckBox" Style="{StaticResource MetroCheckBox}" Content="Enable Client" BorderBrush="#FF006CAD" Foreground="White" Margin="13,56,0,0" Cursor="Hand" Padding="0" IsChecked="True" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="14" ToolTip="Allow the Discord bot to show the courses you are taking." Checked="EnableCheckBox_Checked" Unchecked="EnableCheckBox_Unchecked">
             <CheckBox.Background>
                 <SolidColorBrush Color="Black" Opacity="0.75"/>
             </CheckBox.Background>

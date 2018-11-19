@@ -144,8 +144,10 @@ namespace AutoMarkCheckAgent
             Close();
         }
 
-        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        private async void SaveButton_Click(object sender, RoutedEventArgs e)
         {
+            await Settings.Save(App.Settings);
+
             if (UsernameTextBox.Text.Length == 0 && PasswordTextBox.SecurePassword.Length == 0 && ApiKeyTextBox.SecurePassword.Length == 0)
                 CredentialManager.DeleteCredentials();
             else
@@ -160,6 +162,26 @@ namespace AutoMarkCheckAgent
 
                 CredentialManager.SetCredentials(credentials);
             }
+        }
+
+        private void PublicCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            App.Settings.CoursesPublic = false;
+        }
+
+        private void PublicCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            App.Settings.CoursesPublic = true;
+        }
+
+        private void EnableCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            App.Settings.CheckingEnabled = true;
+        }
+
+        private void EnableCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            App.Settings.CheckingEnabled = false;
         }
     }
 }

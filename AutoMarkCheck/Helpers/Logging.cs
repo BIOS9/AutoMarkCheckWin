@@ -10,13 +10,11 @@ namespace AutoMarkCheck.Helpers
     {
         public enum LogLevel
         {
-            DEBUG,
-            INFO,
-            WARNING,
-            ERROR
+            DEBUG = 0,
+            INFO = 1,
+            WARNING = 2,
+            ERROR = 3
         }
-
-        public static LogLevel LoggingLevel = LogLevel.DEBUG; //Ignore all logs under the current level
 
         private static Action<LogLevel, string, string, Exception> _loggingCallback = null;
 
