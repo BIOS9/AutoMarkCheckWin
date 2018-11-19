@@ -29,8 +29,8 @@ namespace AutoMarkCheckAgent
 
         public static void SetLogLevel(LogLevel logLevel)
         {
-            LoggingLevel = LogLevel.INFO; // Overrride log level so the next log will always show
-            Log(LogLevel.INFO, $"{nameof(AutoMarkCheckAgent)}.{nameof(Logging)}.{nameof(SetLogLevel)}", $"Logging level set to: {logLevel}");
+            //LoggingLevel = LogLevel.INFO; // Overrride log level so the next log will always show
+            //Log(LogLevel.INFO, $"{nameof(AutoMarkCheckAgent)}.{nameof(Logging)}.{nameof(SetLogLevel)}", $"Logging level set to: {logLevel}");
             LoggingLevel = logLevel;
         }
 
