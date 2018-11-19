@@ -31,14 +31,14 @@ namespace AutoMarkCheckAgent
                 return;
             }
 
+            Logging.SetLogLevel(Settings.LogLevel);
+
             if (args.Contains("-gui"))
             {
                 Show();
             }
             else
             {
-                System.Windows.MessageBox.Show("AYE");
-
                 if(!Settings.CheckingEnabled)
                 {
                     Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(Main)}", "Aborting mark check because checking is disabled.");
@@ -59,7 +59,6 @@ namespace AutoMarkCheckAgent
                 else
                 {
                     Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(Main)}", "Aborting mark check because interval has not passed.");
-                    System.Windows.MessageBox.Show("Delayed");
                 }
             }
         }

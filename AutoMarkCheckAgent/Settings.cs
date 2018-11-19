@@ -18,6 +18,7 @@ namespace AutoMarkCheckAgent
         public bool CoursesPublic = false ;
         public int GradeCheckInterval = 300; // 5 minutes
         public string CustomHostname = Environment.MachineName;
+        public LogLevel LogLevel = LogLevel.INFO;
         public DateTime LastGradeCheck = DateTime.MinValue;
 
         public static async Task Save(Settings settings)
