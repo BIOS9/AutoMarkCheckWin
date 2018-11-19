@@ -145,6 +145,7 @@ namespace AutoMarkCheckAgent
 
                 CredentialManager.SetCredentials(credentials);
             }
+            Close();
         }
 
         private void PublicCheckBox_Unchecked(object sender, RoutedEventArgs e)
