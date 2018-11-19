@@ -19,8 +19,12 @@ namespace AutoMarkCheckAgent
         public int GradeCheckInterval = 300; // 5 minutes
         public string CustomHostname = Environment.MachineName;
         public LogLevel LogLevel = LogLevel.INFO;
+        public int MaxLogAgeDays = 3;
         public DateTime LastGradeCheck = DateTime.MinValue;
 
+        /**
+         * <summary>Saves a <see cref="Settings">Settings</see> object to a JSON settings file.</summary>
+         */
         public static async Task Save(Settings settings)
         {
             try
@@ -34,7 +38,7 @@ namespace AutoMarkCheckAgent
                 using (StreamWriter writer = new StreamWriter(stream))
                     await writer.WriteLineAsync(json);
 
-                Logging.Log(LogLevel.INFO, $"{nameof(AutoMarkCheckAgent)}.{nameof(Settings)}.{nameof(Save)}", "Successfully saved settings.");
+                Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(Settings)}.{nameof(Save)}", "Successfully saved settings.");
             }
             catch(Exception ex)
             {
@@ -43,6 +47,9 @@ namespace AutoMarkCheckAgent
             }
         }
 
+        /**
+         * <summary>Loads a JSON settings file into a <see cref="Settings">Settings</see> object.</summary>
+         */
         public static async Task<Settings> Load()
         {
             try
@@ -72,7 +79,7 @@ namespace AutoMarkCheckAgent
                 if (settings.LastGradeCheck > DateTime.Now) //Ensure last grade check cannot be in the future
                     settings.LastGradeCheck = DateTime.MinValue;
 
-                Logging.Log(LogLevel.INFO, $"{nameof(AutoMarkCheckAgent)}.{nameof(Settings)}.{nameof(Load)}", "Successfully loaded settings.");
+                Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(Settings)}.{nameof(Load)}", "Successfully loaded settings.");
 
                 return settings;
             }

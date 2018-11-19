@@ -21,30 +21,34 @@ namespace AutoMarkCheckAgent
         public static void Main(string[] args)
         {
             Logging.Initialize();
+            Logging.CleanOldLogs();
 
             Settings = Settings.Load().Result; // Load settings
 
             // If settings failed to load, exit
             if (Settings == null)
             {
-                Environment.Exit(2);
+                Exit(1);
                 return;
             }
 
             Logging.SetLogLevel(Settings.LogLevel);
 
+            //If the app is launched with the -gui command line option, show the settings window
             if (args.Contains("-gui"))
             {
                 Show();
             }
             else
             {
+                //Ensure checking is enabled
                 if(!Settings.CheckingEnabled)
                 {
                     Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(Main)}", "Aborting mark check because checking is disabled.");
-                    return;
+                    Exit(2);
                 }
 
+                //Ensure that grades are not checked until the interval has been waited from the last check
                 if ((DateTime.Now - Settings.LastGradeCheck).TotalSeconds > Settings.GradeCheckInterval)
                 {
                     CheckGrades(Settings.CustomHostname, Settings.CoursesPublic).Wait();
@@ -59,8 +63,17 @@ namespace AutoMarkCheckAgent
                 else
                 {
                     Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(Main)}", "Aborting mark check because interval has not passed.");
+                    Exit(3);
                 }
             }
+
+            Exit();
+        }
+
+        public static void Exit(int errorCode = 0)
+        {
+            Logging.CloseLogging();
+            Environment.Exit(errorCode);
         }
 
         private static void Show()

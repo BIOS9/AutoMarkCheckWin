@@ -47,7 +47,7 @@ void InitNotifyIconData()
 
 	g_notifyIconData.uCallbackMessage = WM_TRAYICON; // This message must be handled in hwnd's window procedure. more info below.
 
-	g_notifyIconData.hIcon = (HICON)LoadImage(NULL, TEXT("tray.ico"), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	g_notifyIconData.hIcon = (HICON)LoadImage(NULL, TEXT("Resources\\tray.ico"), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
 	// Set the tooltip text.  must be LESS THAN 64 chars
 	strcpy_s(g_notifyIconData.szTip, TEXT("Auto Mark Check Agent"));
