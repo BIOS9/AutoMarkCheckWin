@@ -15,17 +15,30 @@ namespace AutoMarkCheckAgent
     /// </summary>
     public partial class App : System.Windows.Application
     {
+        public static Settings Settings;
+
         [STAThread]
         public static void Main(string[] args)
         {
             Logging.Initialize();
-            if(args.Contains("-gui"))
+
+            Settings = Settings.Load().Result; // Load settings
+
+            // If settings failed to load, exit
+            if (Settings == null)
+            {
+                Environment.Exit(2);
+                return;
+            }
+
+            if (args.Contains("-gui"))
             {
                 Show();
             }
             else
             {
-
+                System.Windows.MessageBox.Show("AYE");
+                CheckGrades().Wait();
             }
         }
 
@@ -42,6 +55,39 @@ namespace AutoMarkCheckAgent
             {
                 Logging.Log(LogLevel.ERROR, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(Show)}", "Error loading GUI.", ex);
                 System.Windows.Forms.MessageBox.Show("There was an error loading the GUI: \n" + ex.Message + "\n\nCheck the log file for a more detailed error.", "Auto Mark Check Agent", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private static async Task CheckGrades()
+        {
+            AutoMarkCheck.ServerAgent agent = null;
+            AutoMarkCheck.Helpers.CredentialManager.MarkCredentials credentials;
+            AutoMarkCheck.Grades.IGradeSource gradeSource;
+
+            try
+            {
+                credentials = AutoMarkCheck.Helpers.CredentialManager.GetCredentials();
+                if (credentials != null)
+                {
+                    agent = new AutoMarkCheck.ServerAgent(credentials, "CoolHost 😎", false);
+                    gradeSource = new AutoMarkCheck.Grades.MyVuwGradeSource(credentials);
+                    List<AutoMarkCheck.Grades.CourseInfo> grades = await gradeSource.GetGrades();
+                    if (grades == null || grades.Count == 0)
+                        throw new Exception("Grade list empty.");
+                    await agent.ReportGrades(grades);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.Log(LogLevel.ERROR, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(CheckGrades)}", "Error checking grades.", ex);
+
+                //Attempt to report error to server
+                try
+                {
+                    if(agent != null)
+                        await agent.ReportError("Error reporting grades: " + ex.Message);
+                }
+                catch { }
             }
         }
     }

@@ -54,7 +54,7 @@ namespace AutoMarkCheck
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Grade report started.");
 
                 string jsonData = SerializeData(courses);
-                Clipboard.SetText(jsonData);
+
                 await Upload(jsonData);
 
                 Logging.Log(Logging.LogLevel.INFO, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Successfully reported grades to bot server.");

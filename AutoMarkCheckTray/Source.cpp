@@ -2,6 +2,8 @@
 #include <shellapi.h>
 #include <stdio.h>
 
+#include "MarkCheckDaemon.h"
+
 #define ID_TRAY_APP_ICON                5000
 #define ID_TRAY_SHOW_CONTEXT_MENU_ITEM  4000
 #define ID_TRAY_EXIT_CONTEXT_MENU_ITEM  3000
@@ -77,6 +79,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR args, int
 	InitNotifyIconData();
 	ShowIcon();
 
+	StartDaemon();
+
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
@@ -117,12 +121,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		// the mouse button has been released.
 
-		if (lParam == WM_LBUTTONDOWN) //Right click
+		if (lParam == WM_LBUTTONDOWN) //Left click
 		{
-			printf("You have restored me!\n");
-			//Launch GUI here
+			StartMarkCheck(true);
 		}
-		else if (lParam == WM_RBUTTONDOWN) //Left click
+		else if (lParam == WM_RBUTTONDOWN) //Right click
 		{
 			// Get current mouse position.
 			POINT curPoint;
@@ -130,7 +133,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			// Set foreground window so menu shows up on top
 			SetForegroundWindow(hwnd);
-
 
 
 			// TrackPopupMenu blocks the app until TrackPopupMenu returns
@@ -143,22 +145,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 				0,
 				hwnd,
 				NULL
-
 			);
 
 			if (clicked == ID_TRAY_EXIT_CONTEXT_MENU_ITEM)
 			{
+				StopMarkCheck();
 				PostQuitMessage(0);
 			}
 			else if (clicked == ID_TRAY_SHOW_CONTEXT_MENU_ITEM)
 			{
-				system("notepad.exe");
+				StartMarkCheck(true);
 			}
 		}
 	}
 	break;
 
 	case WM_DESTROY:
+		StopMarkCheck();
 		PostQuitMessage(0);
 		break;
 
