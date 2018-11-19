@@ -46,6 +46,10 @@ namespace AutoMarkCheckAgent
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             LoadCredentials();
+
+            EnableCheckBox.IsChecked = App.Settings.CheckingEnabled;
+            PublicCheckBox.IsChecked = App.Settings.CoursesPublic;
+
             BlurHelper.BlurWindow(this); //Adds blurred glass effect
             _animator.Animate("Show0.25", ExitButton, TitleLabel, TradeMarkLabel);
 
@@ -94,27 +98,6 @@ namespace AutoMarkCheckAgent
 
             _passwordChanged = false;
             _apiKeyChanged = false;
-        }
-
-        private async void test()
-        {
-            var creds = CredentialManager.GetCredentials();
-            if (creds == null)
-            {
-                CredentialManager.SetCredentials(new CredentialManager.MarkCredentials("test", "test", "tokenInsertHere"));
-                MessageBox.Show("No creds");
-                return;
-            }
-
-            IGradeSource gradeSource = new MyVuwGradeSource(creds);
-            ServerAgent serverAgent = new ServerAgent(creds, "CoolHost 😎");
-            //MessageBox.Show((await gradeSource.CheckCredentials()).ToString());
-            List<CourseInfo> courses = await gradeSource.GetGrades();
-
-            if (courses.Count > 0)
-            {
-                var success = await serverAgent.ReportGrades(courses);
-            }
         }
 
         private void PasswordTextBox_PasswordChanged(object sender, RoutedEventArgs e)
