@@ -274,7 +274,7 @@ namespace AutoMarkCheck.Grades
 
                 //Put post data into byte arrays for easy upload through the request stream
                 byte[] authMethodData = MarkCredentials.CredentialEncoding.GetBytes("AuthMethod=FormsAuthentication");
-                byte[] userData = MarkCredentials.CredentialEncoding.GetBytes("&UserName=student%5C" + _credentials.Username); // "student\username" uses the student login domain
+                byte[] userData = MarkCredentials.CredentialEncoding.GetBytes("&UserName=student%5C" + WebUtility.UrlEncode(_credentials.Username)); // "student\username" uses the student login domain
                 byte[] passData = MarkCredentials.CredentialEncoding.GetBytes("&Password=");
                 int dataLength = authMethodData.Length + userData.Length + passData.Length + _credentials.EscapedPasswordSize; //Calculate length of bytes
 

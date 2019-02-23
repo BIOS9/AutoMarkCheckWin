@@ -155,8 +155,8 @@ namespace AutoMarkCheck.Grades
                 PersistentWebClient client = loginParams.Item2;
 
                 //Put post data into byte arrays for easy upload through the request stream
-                byte[] uuidData = MarkCredentials.CredentialEncoding.GetBytes("uuid=" + loginParams.Item1);
-                byte[] userData = MarkCredentials.CredentialEncoding.GetBytes("&user=" + _credentials.Username);
+                byte[] uuidData = MarkCredentials.CredentialEncoding.GetBytes("uuid=" +  WebUtility.UrlEncode(loginParams.Item1));
+                byte[] userData = MarkCredentials.CredentialEncoding.GetBytes("&user=" + WebUtility.UrlEncode(_credentials.Username));
                 byte[] passData = MarkCredentials.CredentialEncoding.GetBytes("&pass=");
                 int dataLength = uuidData.Length + userData.Length + passData.Length + _credentials.EscapedPasswordSize; //Calculate length of bytes
 
