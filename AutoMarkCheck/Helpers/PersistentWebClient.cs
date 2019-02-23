@@ -12,6 +12,12 @@ namespace AutoMarkCheck.Helpers
      */
     public class PersistentWebClient
     {
+        public class PersistentWebClientResponse
+        {
+            public string HTML;
+            public WebHeaderCollection Headers;
+        }
+
         public CookieCollection Cookies = new CookieCollection();
         public string UserAgent = "AutoMarkCheckBot/1.0";
 
@@ -26,7 +32,7 @@ namespace AutoMarkCheck.Helpers
         /**
          * <summary>Performs a GET request at the  URL and returns the HTML string.</summary>
          */
-        public async Task<string> Get(string url)
+        public async Task<PersistentWebClientResponse> GetWithHeaders(string url)
         {
             HttpWebRequest request = WebRequest.CreateHttp(url);
             request.UserAgent = UserAgent;
@@ -34,7 +40,8 @@ namespace AutoMarkCheck.Helpers
             request.CookieContainer.Add(Cookies); //Add existing cookies to this request
             request.Method = "GET";
             request.Accept = "*/*";
-            request.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip, deflate");
+            request.AllowAutoRedirect = false;
+            request.Headers.Add(HttpRequestHeader.AcceptEncoding, "identity");
             request.Headers.Add(HttpRequestHeader.CacheControl, "no-cache");
 
             //Get response
@@ -43,14 +50,26 @@ namespace AutoMarkCheck.Helpers
             using (StreamReader reader = new StreamReader(stream))
             {
                 Cookies.Add(response.Cookies); //Persist cookies
-                return await reader.ReadToEndAsync();
+                return new PersistentWebClientResponse
+                {
+                    HTML = await reader.ReadToEndAsync(),
+                    Headers = response.Headers
+                };
             }
+        }
+
+        /**
+         * <summary>Shortcut for a GET request that ignores headers.</summary>
+         */
+        public async Task<string> Get(string url)
+        {
+            return (await GetWithHeaders(url)).HTML;
         }
 
         /**
          * <summary>Performs a POST request at a URL and sends post data then returns the HTML string.</summary>
          */
-        public async Task<string> Post(string url, Dictionary<string, string> postData)
+        public async Task<PersistentWebClientResponse> PostWithHeaders(string url, Dictionary<string, string> postData)
         {
             HttpWebRequest request = WebRequest.CreateHttp(url);
             request.UserAgent = UserAgent;
@@ -58,6 +77,7 @@ namespace AutoMarkCheck.Helpers
             request.CookieContainer.Add(Cookies); //Add existing cookies to this request
             request.Method = "POST";
             request.ContentType = "application/x-www-form-urlencoded";
+            request.AllowAutoRedirect = false;
 
 
             //Encode the post data as a post tring
@@ -80,8 +100,20 @@ namespace AutoMarkCheck.Helpers
             using (StreamReader reader = new StreamReader(stream))
             {
                 Cookies.Add(response.Cookies); //Persist cookies from this request
-                return await reader.ReadToEndAsync();
+                return new PersistentWebClientResponse
+                {
+                    HTML = await reader.ReadToEndAsync(),
+                    Headers = response.Headers
+                };
             }
+        }
+
+        /**
+         * <summary>Shortcut for a POST request that ignores headers.</summary>
+         */
+        public async Task<string> Post(string url, Dictionary<string, string> postData)
+        {
+            return (await PostWithHeaders(url, postData)).HTML;
         }
 
 #if DEBUG
@@ -107,7 +139,7 @@ namespace AutoMarkCheck.Helpers
             }
             if (cookieStr.Length > 0)
             {
-                cookieStr = cookieStr.Remove(0, 1);
+                //cookieStr = cookieStr.Remove(0, 1);
                 MessageBox.Show(msg + " " + cookieStr);
             }
             else

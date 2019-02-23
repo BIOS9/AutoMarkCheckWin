@@ -28,7 +28,7 @@ namespace AutoMarkCheckAgent
             // If settings failed to load, exit
             if (Settings == null)
             {
-                Exit(1);
+                exit(1);
                 return;
             }
 
@@ -37,7 +37,7 @@ namespace AutoMarkCheckAgent
             //If the app is launched with the -gui command line option, show the settings window
             if (args.Contains("-gui"))
             {
-                Show();
+                show();
             }
             else
             {
@@ -45,13 +45,13 @@ namespace AutoMarkCheckAgent
                 if(!Settings.CheckingEnabled)
                 {
                     Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(Main)}", "Aborting mark check because checking is disabled.");
-                    Exit(2);
+                    exit(2);
                 }
 
                 //Ensure that grades are not checked until the interval has been waited from the last check
                 if ((DateTime.Now - Settings.LastGradeCheck).TotalSeconds > Settings.GradeCheckInterval)
                 {
-                    CheckGrades(Settings.CustomHostname, Settings.CoursesPublic).Wait();
+                    checkGrades(Settings.CustomHostname, Settings.CoursesPublic).Wait();
 
                     try
                     {
@@ -63,36 +63,36 @@ namespace AutoMarkCheckAgent
                 else
                 {
                     Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(Main)}", "Aborting mark check because interval has not passed.");
-                    Exit(3);
+                    exit(3);
                 }
             }
 
-            Exit();
+            exit();
         }
 
-        public static void Exit(int errorCode = 0)
+        public static void exit(int errorCode = 0)
         {
             Logging.CloseLogging();
             Environment.Exit(errorCode);
         }
 
-        private static void Show()
+        private static void show()
         {
             try
             {
-                Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(Show)}", "Opening GUI.");
+                Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(show)}", "Opening GUI.");
                 MainWindow mainWindow = new MainWindow();
                 mainWindow.ShowDialog();
-                Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(Show)}", "Closed GUI.");
+                Logging.Log(LogLevel.DEBUG, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(show)}", "Closed GUI.");
             }
             catch (Exception ex)
             {
-                Logging.Log(LogLevel.ERROR, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(Show)}", "Error loading GUI.", ex);
+                Logging.Log(LogLevel.ERROR, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(show)}", "Error loading GUI.", ex);
                 System.Windows.Forms.MessageBox.Show("There was an error loading the GUI: \n" + ex.Message + "\n\nCheck the log file for a more detailed error.", "Auto Mark Check Agent", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private static async Task CheckGrades(string hostname, bool coursesPublic)
+        private static async Task checkGrades(string hostname, bool coursesPublic)
         {
             AutoMarkCheck.ServerAgent agent = null;
             AutoMarkCheck.Helpers.CredentialManager.MarkCredentials credentials;
@@ -113,15 +113,20 @@ namespace AutoMarkCheckAgent
             }
             catch (Exception ex)
             {
-                Logging.Log(LogLevel.ERROR, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(CheckGrades)}", "Error checking grades.", ex);
+                Logging.Log(LogLevel.ERROR, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(checkGrades)}", "Error checking grades.", ex);
 
-                //Attempt to report error to server
+                // Attempt to report error to server
                 try
                 {
                     if(agent != null)
                         await agent.ReportError("Error reporting grades: " + ex.Message);
                 }
                 catch { }
+
+                // Delay next grade check to avoid account lockouts for an incorrect password
+                Logging.Log(LogLevel.WARNING, $"{nameof(AutoMarkCheckAgent)}.{nameof(App)}.{nameof(checkGrades)}", "Delaying next grade check for 4 hours.");
+                Settings.LastGradeCheck = DateTime.Now.AddHours(4);
+                await Settings.Save(Settings);
             }
         }
     }

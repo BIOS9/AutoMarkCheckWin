@@ -13,6 +13,9 @@ namespace TestClient
         {
             var creds = AutoMarkCheck.Helpers.CredentialManager.GetCredentials();
             var source = new AutoMarkCheck.Grades.StudentRecordGradeSource(creds);
+            var test = source.Login().Result;
+            string home = test.Get("https://student-records.vuw.ac.nz/pls/webprod/twbkwbis.P_GenMenu?name=bmenu.P_MainMnu").Result;
+            Console.WriteLine(home);
             Console.ReadLine();
         }
     }

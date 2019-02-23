@@ -1,11 +1,14 @@
-﻿using System;
+﻿using AutoMarkCheck.Helpers;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Threading.Tasks;
-using Html = HtmlAgilityPack;
+using System.Web;
 using static AutoMarkCheck.Helpers.CredentialManager;
-using AutoMarkCheck.Helpers;
+using Html = HtmlAgilityPack;
 
 namespace AutoMarkCheck.Grades
 {
@@ -15,7 +18,14 @@ namespace AutoMarkCheck.Grades
     public class StudentRecordGradeSource : IGradeSource
     {
         private const string BaseUrl = "https://studentrecords.vuw.ac.nz";
-        private const string SamlInitiatePath = "/ssomanager/saml/login?relayState=/c/auth/SSB";
+        private const string SamlInitiatePath = "/ssomanager/saml/login?relayState=";
+        private const string SamlCallbackPath = "/ssomanager/saml/SSO";
+        private const string FinalSamlCallbackPath = "/ssomanager/c/auth/SSB";
+        private const string AcademicHistoryPath = "/pls/webprod/bwsxacdh.P_FacStuInfo";
+        private const string RelayState = "/c/auth/SSB";
+        private const string SSOUrl = "https://auth-eis.vuw.ac.nz/samlsso";
+        private const string SSOCallback = "https://auth-eis.vuw.ac.nz/commonauth";
+        private const string FederationUrl = "https://federation.vuw.ac.nz/adfs/ls";
         private MarkCredentials _credentials;
 
 
@@ -37,7 +47,15 @@ namespace AutoMarkCheck.Grades
          */
         public async Task<bool> CheckCredentials()
         {
-            throw new NotImplementedException();
+            try
+            {
+                await Login();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /**
@@ -62,7 +80,7 @@ namespace AutoMarkCheck.Grades
                     Logging.Log(Logging.LogLevel.WARNING, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(GetGrades)}", "No courses were found, Term/Year wil be set to current year on next request.");
                 }
                 else
-                    Logging.Log(Logging.LogLevel.INFO, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(GetGrades)}", $"Successfully got {grades.Count} grades from MyVUW.");
+                    Logging.Log(Logging.LogLevel.INFO, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(GetGrades)}", $"Successfully got {grades.Count} grades from Student Records.");
 
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(GetGrades)}", "Grade grab finished.");
 
@@ -75,7 +93,7 @@ namespace AutoMarkCheck.Grades
             }
         }
 
-        private List<CourseInfo> ParseGradeHtml(string html)
+        private List<CourseInfo> parseGradeHtml(string html)
         {
             try
             {
@@ -99,14 +117,120 @@ namespace AutoMarkCheck.Grades
                         });
                     }
 
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(ParseGradeHtml)}", "Successfully parsed grades HTML.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(parseGradeHtml)}", "Successfully parsed grades HTML.");
 
                 return grades;
             }
             catch (Exception ex)
             {
-                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(ParseGradeHtml)}", "Failed to parsed grades HTML.", ex);
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(parseGradeHtml)}", "Failed to parsed grades HTML.", ex);
                 return new List<CourseInfo>();
+            }
+        }
+
+        /**
+         * <summary>Initiates a login request and follows the login flow until user credentials are required.</summary>
+         * <returns>A <see cref="PersistentWebClient">PersistentWebClient</see> for the login session.</returns>
+         */
+        private async Task<PersistentWebClient> initiateLogin()
+        {
+            try
+            {
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(initiateLogin)}", "Initiating login.");
+
+                PersistentWebClient client = new PersistentWebClient(); // Cookie persistence is required for this login process
+
+                // Get the server to initate a login using SAML
+                string ssoRedirect = await client.Get(BaseUrl + SamlInitiatePath + RelayState);
+
+                Html.HtmlDocument doc = new Html.HtmlDocument();
+                doc.LoadHtml(ssoRedirect);
+
+                var samlNode = doc.DocumentNode.SelectSingleNode("//input[@name='SAMLRequest']"); // Selects SAML data element using XPath query
+                string samlData = samlNode.GetAttributeValue("value", ""); // Gets SAML data
+
+
+                // Use previous SAML data to forward to another SAML endpoint that will then forward again to the last login endpoint
+                string federationRedirect = await client.Post(SSOUrl, new Dictionary<string, string> {
+                    { "RelayState", HttpUtility.UrlEncode(RelayState) }, // URL encode post data
+                    { "SAMLRequest", HttpUtility.UrlEncode(samlData) }
+                });
+
+                doc = new Html.HtmlDocument();
+                doc.LoadHtml(federationRedirect);
+
+                samlNode = doc.DocumentNode.SelectSingleNode("//input[@name='SAMLRequest']"); // Selects SAML data element using XPath query
+                samlData = samlNode.GetAttributeValue("value", ""); // Gets SAML data
+
+                var relayStateNode = doc.DocumentNode.SelectSingleNode("//input[@name='RelayState']"); //Selects relay state element using XPath query
+                string sessionRelayState = relayStateNode.GetAttributeValue("value", ""); //Gets relay state for this login session
+
+                // Send final SAML data to the login endpoint so it can set the SAML session cookie
+                await client.Post(FederationUrl, new Dictionary<string, string> {
+                    { "RelayState", HttpUtility.UrlEncode(sessionRelayState) },
+                    { "SAMLRequest", HttpUtility.UrlEncode(samlData) }
+                });
+
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(initiateLogin)}", "Finished login initiation.");
+
+                return client;
+            }
+            catch(Exception ex)
+            {
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(initiateLogin)}", "Error initiating login.", ex);
+                throw ex;
+            }
+        }
+
+        /**
+         * <summary>Finalizes the login process by completing the SAML authentication flow.</summary>
+         * <param name="client">A <see cref="PersistentWebClient">PersistentWebClient</see> for the authenticated session to finalize.</param>
+         */
+        private async Task finalizeLogin(PersistentWebClient client)
+        {
+            try
+            {
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(finalizeLogin)}", "Finalizing login.");
+
+                string ssoRedirect = await client.Get(FederationUrl);
+
+                Html.HtmlDocument doc = new Html.HtmlDocument();
+                doc.LoadHtml(ssoRedirect);
+
+                var samlNode = doc.DocumentNode.SelectSingleNode("//input[@name='SAMLResponse']"); //Select SAML response using an XPath query
+                string samlData = samlNode.GetAttributeValue("value", ""); // Gets SAML data
+
+                var relayStateNode = doc.DocumentNode.SelectSingleNode("//input[@name='RelayState']"); //Select relay state using an XPath query
+                string sessionRelayState = relayStateNode.GetAttributeValue("value", ""); // Gets relay state
+
+                var response = await client.PostWithHeaders(SSOCallback, new Dictionary<string, string> {
+                    { "SAMLResponse", HttpUtility.UrlEncode(samlData) },
+                    { "RelayState", HttpUtility.UrlEncode(sessionRelayState) }
+                });
+
+                string redirectUrl = response.Headers.Get("Location");
+
+                string callbackResponse = await client.Get(redirectUrl);
+
+                doc = new Html.HtmlDocument();
+                doc.LoadHtml(callbackResponse);
+
+                samlNode = doc.DocumentNode.SelectSingleNode("//input[@name='SAMLResponse']"); //Select SAML response using an XPath query
+                samlData = samlNode.GetAttributeValue("value", ""); // Gets SAML data
+
+                await client.Post(BaseUrl + SamlCallbackPath, new Dictionary<string, string> {
+                    { "RelayState", HttpUtility.UrlEncode(RelayState) },
+                    { "SAMLResponse", HttpUtility.UrlEncode(samlData) }
+                });
+
+                await client.Get(BaseUrl + FinalSamlCallbackPath);
+
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(finalizeLogin)}", "Finished finalizing login.");
+            }
+            catch (Exception ex)
+            {
+                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(finalizeLogin)}", "Failed to finalize login.", ex);
+                throw ex;
             }
         }
 
@@ -120,104 +244,121 @@ namespace AutoMarkCheck.Grades
             try
             {
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Login started");
-                PersistentWebClient client = new PersistentWebClient();
 
-                string federationRedirect = await client.Get(SamlInitiatePath);
+                // Simplified flow of SAML SSO login process
+                //
+                //        The User (Not logged in)
+                //           || (GET secure page)
+                //           \/
+                // studentrecords.vuw.ac.nz
+                //           || (POST SAML Request)
+                //           \/
+                // auth-eis.vuw.ac.nz/samlsso
+                //           || (POST SAML Request)
+                //           \/
+                // federation.vuw.ac.nz (This is the login page that the user sees)
+                //
+                //
+                //        The User
+                //           || (POST user credentials)
+                //           \/
+                // federation.vuw.ac.nz
+                //           || (POST SAML Response)
+                //           \/
+                // auth-eis.vuw.ac.nz
+                //           || (POST SAML Response)
+                //           \/
+                // studentrecords.vuw.ac.nz (Logged in!)
 
-                Html.HtmlDocument doc = new Html.HtmlDocument();
-                doc.LoadHtml(federationRedirect);
+                PersistentWebClient client = await initiateLogin();
 
-                var samlNode = doc.DocumentNode.SelectSingleNode("//input[name=SAMLRequest]"); //Selects SAML data using XPath query
-                string samlData = samlNode.GetAttributeValue("value", "");
+                //Put post data into byte arrays for easy upload through the request stream
+                byte[] authMethodData = MarkCredentials.CredentialEncoding.GetBytes("AuthMethod=FormsAuthentication");
+                byte[] userData = MarkCredentials.CredentialEncoding.GetBytes("&UserName=student%5C" + _credentials.Username); // "student\username" uses the student login domain
+                byte[] passData = MarkCredentials.CredentialEncoding.GetBytes("&Password=");
+                int dataLength = authMethodData.Length + userData.Length + passData.Length + _credentials.EscapedPasswordSize; //Calculate length of bytes
 
-                //https://auth-eis.vuw.ac.nz:443/samlsso
+                //Create request
+                HttpWebRequest request = WebRequest.CreateHttp(FederationUrl);
 
+                //Set HTTP data such as headers
+                request.Method = "POST";
+                request.ContentType = "application/x-www-form-urlencoded";
+                request.ContentLength = dataLength;
+                request.CookieContainer = new CookieContainer();
+                request.CookieContainer.Add(client.Cookies); //Add the cookies from the login parameters to the request
+                request.UserAgent = client.UserAgent;
+                request.Accept = "*/*";
+                request.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip, deflate");
+                request.Headers.Add(HttpRequestHeader.CacheControl, "no-cache");
+                request.AllowAutoRedirect = false;
 
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Login request opened.");
 
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(ParseGradeHtml)}", "Successfully parsed grades HTML.");
+                using (Stream stream = await request.GetRequestStreamAsync())
+                {
+                    Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Writing login credentials.");
+                    //Write UUID, Username and the start of the password
+                    await stream.WriteAsync(authMethodData, 0, authMethodData.Length);
+                    await stream.WriteAsync(userData, 0, userData.Length);
+                    await stream.WriteAsync(passData, 0, passData.Length);
 
-                ////Put post data into byte arrays for easy upload through the request stream
-                //byte[] uuidData = MarkCredentials.CredentialEncoding.GetBytes("uuid=" + loginParams.Item1);
-                //byte[] userData = MarkCredentials.CredentialEncoding.GetBytes("&user=" + credentials.Username);
-                //byte[] passData = MarkCredentials.CredentialEncoding.GetBytes("&pass=");
-                //int dataLength = uuidData.Length + userData.Length + passData.Length + credentials.EscapedPasswordSize; //Calculate length of bytes
+                    //Write password to stream character by character
+                    IntPtr passwordPtr = Marshal.SecureStringToBSTR(_credentials.Password); //Convert SecureString password to BSTR and get the pointer
+                    try
+                    {
+                        byte b = 1;
+                        int i = 0;
 
-                ////Create request
-                //HttpWebRequest request = WebRequest.CreateHttp(BASE_URL + LOGIN_POST_PATH);
+                        while (true) //Loop over characters in the BSTR
+                        {
+                            b = Marshal.ReadByte(passwordPtr, i);
+                            if (b == 0)
+                                break; //If terminator character '\0' is hit exit loop
 
-                ////Set HTTP data such as headers
-                //request.Method = "POST";
-                //request.ContentType = "application/x-www-form-urlencoded";
-                //request.ContentLength = dataLength;
-                //request.CookieContainer = new CookieContainer();
-                //request.CookieContainer.Add(client.Cookies); //Add the cookies from the login parameters to the request
-                //request.UserAgent = client.UserAgent;
-                //request.Accept = "*/*";
-                //request.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip, deflate");
-                //request.Headers.Add(HttpRequestHeader.CacheControl, "no-cache");
+                            string escapedChar = Uri.EscapeDataString(((char)b).ToString()); //Must be a string because the escaped character can be more than 1 character long eg %00
+                            byte[] escapedCharBytes = MarkCredentials.CredentialEncoding.GetBytes(escapedChar);
+                            await stream.WriteAsync(escapedCharBytes, 0, escapedCharBytes.Length);
 
-                //Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Login request opened.");
+                            i = i + 2;  // BSTR is unicode and occupies 2 bytes
+                        }
+                    }
+                    finally
+                    {
+                        Marshal.ZeroFreeBSTR(passwordPtr); //Securely clear password BSTR from memory
+                    }
+                }
 
-                //using (Stream stream = await request.GetRequestStreamAsync())
-                //{
-                //    Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Writing login credentials.");
-                //    //Write UUID, Username and the start of the password
-                //    await stream.WriteAsync(uuidData, 0, uuidData.Length);
-                //    await stream.WriteAsync(userData, 0, userData.Length);
-                //    await stream.WriteAsync(passData, 0, passData.Length);
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Getting login response.");
 
-                //    //Write password to stream character by character
-                //    IntPtr passwordPtr = Marshal.SecureStringToBSTR(credentials.Password); //Convert SecureString password to BSTR and get the pointer
-                //    try
-                //    {
-                //        byte b = 1;
-                //        int i = 0;
+                //Get the login response
+                using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
+                {
+                    string respStr = await new StreamReader(response.GetResponseStream()).ReadToEndAsync(); //Get HTML page
 
-                //        while (true) //Loop over characters in the BSTR
-                //        {
-                //            b = Marshal.ReadByte(passwordPtr, i);
-                //            if (b == 0) break; //If terminator character '\0' is hit exit loop
+                    if (respStr.Contains("Incorrect user ID or password"))
+                    {
+                        Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Login was rejected by the server because the user ID or password is incorrect.");
+                        throw new AuthenticationException("Login failure returned from server: invalid credentials.");
+                    }
+                    else if(respStr.Contains("An error occurred"))
+                    {
+                        Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Login was rejected by the server because an error occured.");
+                        throw new Exception("Login failure returned from server: an error occured");
+                    }
 
-                //            string escapedChar = Uri.EscapeDataString(((char)b).ToString()); //Must be a string because the escaped character can be more than 1 character long eg %00
-                //            byte[] escapedCharBytes = MarkCredentials.CredentialEncoding.GetBytes(escapedChar);
-                //            await stream.WriteAsync(escapedCharBytes, 0, escapedCharBytes.Length);
+                    client.Cookies.Add(response.Cookies); //Save the session in the client
+                }
 
-                //            i = i + 2;  // BSTR is unicode and occupies 2 bytes
-                //        }
-                //    }
-                //    finally
-                //    {
-                //        Marshal.ZeroFreeBSTR(passwordPtr); //Securely clear password BSTR from memory
-                //    }
-                //}
+                await finalizeLogin(client);
 
-                //Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Getting login response.");
-
-                ////Get the login response
-                //using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
-                //{
-                //    string respStr = await new StreamReader(response.GetResponseStream()).ReadToEndAsync(); //Get HTML page
-
-                //    if (respStr.Contains("Failed")) //Check if page contains "Fail"
-                //    {
-                //        Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Login was rejected by MyVictoria for an unkown reason. Credentials may be incorrect.");
-                //        throw new AuthenticationException("Login failure returned from MyVictoria, credentials may be incorrect.");
-                //    }
-
-                //    client.Cookies.Add(response.Cookies); //Save the session in the client
-                //}
-
-                ////Browse to these URLs, the site doesnt work properly unless you visit these
-                //await client.Get(BASE_URL + LOGIN_OK_PATH);
-                //await client.Get(BASE_URL + LOGIN_NEXT_PATH);
-
-                //Logging.Log(Logging.LogLevel.INFO, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Successfully logged into MyVuw");
+                Logging.Log(Logging.LogLevel.INFO, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Successfully logged into Student Records.");
 
                 return client;
             }
             catch (Exception ex)
             {
-                throw new AuthenticationException("Unable to login to MyVictoria: " + ex.Message, ex); //Throw login failure exception with the inner exception
+                throw new Exception("Unable to login to Student Records: " + ex.Message, ex); //Throw login failure exception with the inner exception
             }
         }
     }
