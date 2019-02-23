@@ -14,9 +14,9 @@ namespace AutoMarkCheck.Grades
      */
     public class StudentRecordGradeSource : IGradeSource
     {
-        private const string BaseUrl = "https://my.vuw.ac.nz";
+        private const string BaseUrl = "https://studentrecords.vuw.ac.nz";
+        private const string SamlInitiatePath = "/ssomanager/saml/login?relayState=/c/auth/SSB";
         private MarkCredentials _credentials;
-
 
 
         public StudentRecordGradeSource(MarkCredentials credentials)
@@ -115,13 +115,26 @@ namespace AutoMarkCheck.Grades
          * <returns>A <see cref="CookieCollection">CookieCollection</see> containing the cookies for the new logged in session.</returns>
          * <exception cref="AuthenticationException">Thrown when credentials are incorrect or the login has failed for another reason.</exception>
          */
-        private async Task<PersistentWebClient> Login()
+        public async Task<PersistentWebClient> Login()
         {
             try
             {
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Login started");
-                Tuple<string, PersistentWebClient> loginParams = await GetLoginParams(); //Get login parameters such as session cookies and UUID
-                PersistentWebClient client = loginParams.Item2;
+                PersistentWebClient client = new PersistentWebClient();
+
+                string federationRedirect = await client.Get(SamlInitiatePath);
+
+                Html.HtmlDocument doc = new Html.HtmlDocument();
+                doc.LoadHtml(federationRedirect);
+
+                var samlNode = doc.DocumentNode.SelectSingleNode("//input[name=SAMLRequest]"); //Selects SAML data using XPath query
+                string samlData = samlNode.GetAttributeValue("value", "");
+
+                //https://auth-eis.vuw.ac.nz:443/samlsso
+
+
+
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(Grades)}.{nameof(MyVuwGradeSource)}.{nameof(ParseGradeHtml)}", "Successfully parsed grades HTML.");
 
                 ////Put post data into byte arrays for easy upload through the request stream
                 //byte[] uuidData = MarkCredentials.CredentialEncoding.GetBytes("uuid=" + loginParams.Item1);
@@ -205,71 +218,6 @@ namespace AutoMarkCheck.Grades
             catch (Exception ex)
             {
                 throw new AuthenticationException("Unable to login to MyVictoria: " + ex.Message, ex); //Throw login failure exception with the inner exception
-            }
-        }
-
-        /**
-         * <summary>Gets session cookies and UUID created by MyVictoria website using a GET request, simulating someone loading the login page.</summary>
-         * <returns>A tuple value containing the UUID as Item1 and the session cookies as Item2</returns>
-         */
-        private async Task<Tuple<string, PersistentWebClient>> GetLoginParams()
-        {
-            try
-            {
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(GetLoginParams)}", "Getting login parameters.");
-
-                PersistentWebClient client = new PersistentWebClient();
-
-                //string pageText = await client.Get(BASE_URL + LOGIN_PAGE_PATH); //Download page text
-                //string uuid = Regex.Match(pageText, LOGIN_UUID_PATTERN).Groups[1].Value; //Find the UUID inside the HTML/JS
-
-                //Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(GetLoginParams)}", "Finished getting login parameters");
-
-                return new Tuple<string, PersistentWebClient>("", client); //Return UUID and client
-            }
-            catch (Exception ex)
-            {
-                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(GetLoginParams)}", "Error getting login parameters.", ex);
-
-                throw new WebException("Failed to load or parse MyVictoria login page.", ex);
-            }
-        }
-
-        /**
-         * <summary>Sets the term/year on MyVuw to the current year so the grades that show up are for this year.</summary>
-         * <param name="client">Authenticated client to use to update the setting.</param>
-         */
-        private async Task SetGradeYear(PersistentWebClient client)
-        {
-            try
-            {
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(SetGradeYear)}", $"Started setting grade year to {DateTime.Now.Year}01.");
-                //The site wont change the setting until you browse to these urls
-                //await client.Get(BASE_URL + HOME_PATH);
-                //await client.Get(BASE_URL + MY_STUDY_PATH);
-                //await client.Get(BASE_URL + TERM_UPDATE_PATH);
-
-                ////Switch into edit mode, then update the setting
-                //await client.Post(BASE_URL + TERM_UPDATE_POST_PATH, new Dictionary<string, string> {
-                //    { "MODE", "EDIT" },
-                //    { "VIEW", "EDUPDATE" },
-                //    { "TEXTDATA", "999" }, //Display up to 999 grades on the Courses and Grades page
-                //    { "TERMLIST", DateTime.Now.Year + "01" }, //Set year to current year with a suffix of 01 because the website requires that
-                //});
-
-                ////Switch out of edit mode so grades can be viewed
-                //await client.Post(BASE_URL + TERM_UPDATE_POST_PATH, new Dictionary<string, string> {
-                //    { "MODE", "DEFAULT" },
-                //    { "VIEW", "DEFAULT" },
-                //    { "TEXTDATA", "999" },
-                //    { "TERMLIST", DateTime.Now.Year + "01" },
-                //});
-
-                Logging.Log(Logging.LogLevel.INFO, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(SetGradeYear)}", $"Grade year has been successfully set to {DateTime.Now.Year}01.");
-            }
-            catch (Exception ex)
-            {
-                Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(SetGradeYear)}", $"Failed to set grade year to {DateTime.Now.Year}01.", ex);
             }
         }
     }

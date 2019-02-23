@@ -1,0 +1,16 @@
+studentrecords.vuw.ac.nz
+
+If not logged in: redirected to studentrecords.vuw.ac.nz/ssomanager/saml/login?relayState=/c/auth/SSB
+If logged in, redirected to student records home page
+this page has a form on it with SAML data, form auto submits post request to https://auth-eis.vuw.ac.nz:443/samlsso
+this page has a form on it with more SAML, form auto submits post request to https://federation.vuw.ac.nz/adfs/ls
+Prompts for username and password at this point
+Submit credentials:
+Post request with credentials to https://federation.vuw.ac.nz/adfs/ls
+Redirects to https://federation.vuw.ac.nz:443/adfs/ls
+this page has a form with more SAML data, form auto submits post request to https://auth-eis.vuw.ac.nz:443/commonauth
+This page redirects to https://auth-eis.vuw.ac.nz/samlsso?sessionDataKey=<some session here>
+this page contains form with some more SAML data that auto submits post request to https://studentrecords.vuw.ac.nz:443/ssomanager/saml/SSO
+this page reidirects to https://studentrecords.vuw.ac.nz/ssomanager/c/auth/SSB
+this page redirects to https://student-records.vuw.ac.nz/pls/webprod/twbkwbis.P_GenMenu?name=bmenu.P_MainMnu
+We seem to be logged in at this point
