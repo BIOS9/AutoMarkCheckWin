@@ -25,8 +25,8 @@ namespace AutoMarkCheck.Grades
         private const string AcademicHistoryUrl = "https://student-records.vuw.ac.nz/pls/webprod/bwsxacdh.P_FacStuInfo";
         private const string HomePageUrl = "https://student-records.vuw.ac.nz/pls/webprod/twbkwbis.P_GenMenu?name=bmenu.P_MainMnu";
         private const string RelayState = "/c/auth/SSB";
-        private const string SSOUrl = "https://auth-eis.vuw.ac.nz/samlsso";
-        private const string SSOCallback = "https://auth-eis.vuw.ac.nz/commonauth";
+        private const string SsoUrl = "https://auth-eis.vuw.ac.nz/samlsso";
+        private const string SsoCallback = "https://auth-eis.vuw.ac.nz/commonauth";
         private const string FederationUrl = "https://federation.vuw.ac.nz/adfs/ls";
         private MarkCredentials _credentials;
 
@@ -110,15 +110,15 @@ namespace AutoMarkCheck.Grades
                 List<CourseInfo> grades = new List<CourseInfo>();
                 foreach (var node in nodes)
                 {
-                    var dataNodes = node.SelectNodes("td");
-                    string fullCourseName = dataNodes[0].InnerText;
+                    var dataNodes = node.SelectNodes("td"); // Get the table cells for the current row
+                    string fullCourseName = dataNodes[0].InnerText; // Grab the full name of the course eg COMP102
                     grades.Add(new CourseInfo
                     {
-                        Subject = Regex.Match(fullCourseName, @"(^[A-Z]+)").Value,
-                        Course = Regex.Match(fullCourseName, @"([0-9]+$)").Value,
+                        Subject = Regex.Match(fullCourseName, @"(^[A-Z]+)").Value, // Get the first part of the full name eg COMP
+                        Course = Regex.Match(fullCourseName, @"([0-9]+$)").Value, // Get the last part of the full name eg 102
                         CourseTitle = dataNodes[1].InnerText,
                         CRN = null,
-                        Grade = dataNodes[6].InnerText.Replace("&nbsp;", "")
+                        Grade = dataNodes[6].InnerText.Replace("&nbsp;", "") // If there is no grade, the cell contains &nbsp; replace it with nothing
                     });
                 }
 
@@ -156,7 +156,7 @@ namespace AutoMarkCheck.Grades
 
 
                 // Use previous SAML data to forward to another SAML endpoint that will then forward again to the last login endpoint
-                string federationRedirect = await client.Post(SSOUrl, new Dictionary<string, string> {
+                string federationRedirect = await client.Post(SsoUrl, new Dictionary<string, string> {
                     { "RelayState", HttpUtility.UrlEncode(RelayState) }, // URL encode post data
                     { "SAMLRequest", HttpUtility.UrlEncode(samlData) }
                 });
@@ -202,13 +202,13 @@ namespace AutoMarkCheck.Grades
                 Html.HtmlDocument doc = new Html.HtmlDocument();
                 doc.LoadHtml(ssoRedirect);
 
-                var samlNode = doc.DocumentNode.SelectSingleNode("//input[@name='SAMLResponse']"); //Select SAML response using an XPath query
+                var samlNode = doc.DocumentNode.SelectSingleNode("//input[@name='SAMLResponse']"); // Select SAML response using an XPath query
                 string samlData = samlNode.GetAttributeValue("value", ""); // Gets SAML data
 
-                var relayStateNode = doc.DocumentNode.SelectSingleNode("//input[@name='RelayState']"); //Select relay state using an XPath query
+                var relayStateNode = doc.DocumentNode.SelectSingleNode("//input[@name='RelayState']"); // Select relay state using an XPath query
                 string sessionRelayState = relayStateNode.GetAttributeValue("value", ""); // Gets relay state
 
-                var response = await client.PostWithHeaders(SSOCallback, new Dictionary<string, string> {
+                var response = await client.PostWithHeaders(SsoCallback, new Dictionary<string, string> {
                     { "SAMLResponse", HttpUtility.UrlEncode(samlData) },
                     { "RelayState", HttpUtility.UrlEncode(sessionRelayState) }
                 });
@@ -220,7 +220,7 @@ namespace AutoMarkCheck.Grades
                 doc = new Html.HtmlDocument();
                 doc.LoadHtml(callbackResponse);
 
-                samlNode = doc.DocumentNode.SelectSingleNode("//input[@name='SAMLResponse']"); //Select SAML response using an XPath query
+                samlNode = doc.DocumentNode.SelectSingleNode("//input[@name='SAMLResponse']"); // Select SAML response using an XPath query
                 samlData = samlNode.GetAttributeValue("value", ""); // Gets SAML data
 
                 await client.Post(BaseUrl + SamlCallbackPath, new Dictionary<string, string> {
@@ -279,21 +279,21 @@ namespace AutoMarkCheck.Grades
 
                 PersistentWebClient client = await initiateLogin();
 
-                //Put post data into byte arrays for easy upload through the request stream
+                // Put post data into byte arrays for easy upload through the request stream
                 byte[] authMethodData = MarkCredentials.CredentialEncoding.GetBytes("AuthMethod=FormsAuthentication");
                 byte[] userData = MarkCredentials.CredentialEncoding.GetBytes("&UserName=student%5C" + WebUtility.UrlEncode(_credentials.Username)); // "student\username" uses the student login domain
                 byte[] passData = MarkCredentials.CredentialEncoding.GetBytes("&Password=");
-                int dataLength = authMethodData.Length + userData.Length + passData.Length + _credentials.EscapedPasswordSize; //Calculate length of bytes
+                int dataLength = authMethodData.Length + userData.Length + passData.Length + _credentials.EscapedPasswordSize; // Calculate length of bytes
 
-                //Create request
+                // Create request
                 HttpWebRequest request = WebRequest.CreateHttp(FederationUrl);
 
-                //Set HTTP data such as headers
+                // Set HTTP data such as headers
                 request.Method = "POST";
                 request.ContentType = "application/x-www-form-urlencoded";
                 request.ContentLength = dataLength;
                 request.CookieContainer = new CookieContainer();
-                request.CookieContainer.Add(client.Cookies); //Add the cookies from the login parameters to the request
+                request.CookieContainer.Add(client.Cookies); // Add the cookies from the login parameters to the request
                 request.UserAgent = client.UserAgent;
                 request.Accept = "*/*";
                 request.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip, deflate");
@@ -305,25 +305,25 @@ namespace AutoMarkCheck.Grades
                 using (Stream stream = await request.GetRequestStreamAsync())
                 {
                     Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(login)}", "Writing login credentials.");
-                    //Write UUID, Username and the start of the password
+                    // Write UUID, Username and the start of the password
                     await stream.WriteAsync(authMethodData, 0, authMethodData.Length);
                     await stream.WriteAsync(userData, 0, userData.Length);
                     await stream.WriteAsync(passData, 0, passData.Length);
 
-                    //Write password to stream character by character
-                    IntPtr passwordPtr = Marshal.SecureStringToBSTR(_credentials.Password); //Convert SecureString password to BSTR and get the pointer
+                    // Write password to stream character by character
+                    IntPtr passwordPtr = Marshal.SecureStringToBSTR(_credentials.Password); // Convert SecureString password to BSTR and get the pointer
                     try
                     {
                         byte b = 1;
                         int i = 0;
 
-                        while (true) //Loop over characters in the BSTR
+                        while (true) // Loop over characters in the BSTR
                         {
                             b = Marshal.ReadByte(passwordPtr, i);
                             if (b == 0)
-                                break; //If terminator character '\0' is hit exit loop
+                                break; // If terminator character '\0' is hit exit loop
 
-                            string escapedChar = Uri.EscapeDataString(((char)b).ToString()); //Must be a string because the escaped character can be more than 1 character long eg %00
+                            string escapedChar = Uri.EscapeDataString(((char)b).ToString()); // Must be a string because the escaped character can be more than 1 character long eg %00
                             byte[] escapedCharBytes = MarkCredentials.CredentialEncoding.GetBytes(escapedChar);
                             await stream.WriteAsync(escapedCharBytes, 0, escapedCharBytes.Length);
 
@@ -338,7 +338,7 @@ namespace AutoMarkCheck.Grades
 
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(login)}", "Getting login response.");
 
-                //Get the login response
+                // Get the login response
                 using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
                 {
                     string respStr = await new StreamReader(response.GetResponseStream()).ReadToEndAsync(); //Get HTML page
