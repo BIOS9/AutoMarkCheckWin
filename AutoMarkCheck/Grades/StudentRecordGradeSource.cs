@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using static AutoMarkCheck.Helpers.CredentialManager;
@@ -21,7 +22,8 @@ namespace AutoMarkCheck.Grades
         private const string SamlInitiatePath = "/ssomanager/saml/login?relayState=";
         private const string SamlCallbackPath = "/ssomanager/saml/SSO";
         private const string FinalSamlCallbackPath = "/ssomanager/c/auth/SSB";
-        private const string AcademicHistoryPath = "/pls/webprod/bwsxacdh.P_FacStuInfo";
+        private const string AcademicHistoryUrl = "https://student-records.vuw.ac.nz/pls/webprod/bwsxacdh.P_FacStuInfo";
+        private const string HomePageUrl = "https://student-records.vuw.ac.nz/pls/webprod/twbkwbis.P_GenMenu?name=bmenu.P_MainMnu";
         private const string RelayState = "/c/auth/SSB";
         private const string SSOUrl = "https://auth-eis.vuw.ac.nz/samlsso";
         private const string SSOCallback = "https://auth-eis.vuw.ac.nz/commonauth";
@@ -49,7 +51,7 @@ namespace AutoMarkCheck.Grades
         {
             try
             {
-                await Login();
+                await login();
                 return true;
             }
             catch
@@ -69,11 +71,14 @@ namespace AutoMarkCheck.Grades
             {
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(GetGrades)}", "Grade grab started.");
 
-                PersistentWebClient client = await Login(); //Create logged in session
+                PersistentWebClient client = await login(); //Create logged in session
+                // Have to set cookie path to root because by default this cookie only gets set for the home page
+                Cookie sessionCookie = client.Cookies["SESSID"];
+                sessionCookie.Path = "/";
 
-                //string result = await client.Get(BASE_URL + GRADE_PATH); //Download grade page
+                string result = (await client.GetWithHeaders(AcademicHistoryUrl, HomePageUrl)).HTML; //Download grade page, the grade page REQUIRES the referer to be the home page, otherwise a 403 forbidden error is returned
 
-                List<CourseInfo> grades = new List<CourseInfo>();// ParseGradeHtml(result);
+                List<CourseInfo> grades = parseGradeHtml(result);
 
                 if (grades.Count == 0) //If no courses were found
                 {
@@ -100,22 +105,22 @@ namespace AutoMarkCheck.Grades
                 Html.HtmlDocument doc = new Html.HtmlDocument();
                 doc.LoadHtml(html);
 
-                var nodes = doc.DocumentNode.SelectNodes("//table[@class='datadisplaytable']/form/tr[not(@class='uportal-background-light')]"); //Selects rows that have the grades using XPath query
+                var nodes = doc.DocumentNode.SelectNodes("(/html/body/div[@class='pagebodydiv']/table[@summary='This table displays the student course history information.'])[1]/tr[position()>1]"); //Selects the courses from latest term
 
                 List<CourseInfo> grades = new List<CourseInfo>();
-                foreach (var row in nodes)
-                    if (row.ChildNodes.Count == 5) //Rows containing grades have 5 cells
+                foreach (var node in nodes)
+                {
+                    var dataNodes = node.SelectNodes("td");
+                    string fullCourseName = dataNodes[0].InnerText;
+                    grades.Add(new CourseInfo
                     {
-                        grades.Add(new CourseInfo
-                        {
-                            //Set course data from the HTML cells
-                            CRN = row.ChildNodes[0].InnerText,
-                            Subject = row.ChildNodes[1].InnerText,
-                            Course = row.ChildNodes[2].InnerText,
-                            CourseTitle = row.ChildNodes[3].InnerText,
-                            Grade = row.ChildNodes[4].InnerText,
-                        });
-                    }
+                        Subject = Regex.Match(fullCourseName, @"(^[A-Z]+)").Value,
+                        Course = Regex.Match(fullCourseName, @"([0-9]+$)").Value,
+                        CourseTitle = dataNodes[1].InnerText,
+                        CRN = null,
+                        Grade = dataNodes[6].InnerText.Replace("&nbsp;", "")
+                    });
+                }
 
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(parseGradeHtml)}", "Successfully parsed grades HTML.");
 
@@ -175,7 +180,7 @@ namespace AutoMarkCheck.Grades
 
                 return client;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(initiateLogin)}", "Error initiating login.", ex);
                 throw ex;
@@ -225,6 +230,8 @@ namespace AutoMarkCheck.Grades
 
                 await client.Get(BaseUrl + FinalSamlCallbackPath);
 
+                await client.Get(HomePageUrl);
+
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(finalizeLogin)}", "Finished finalizing login.");
             }
             catch (Exception ex)
@@ -239,11 +246,11 @@ namespace AutoMarkCheck.Grades
          * <returns>A <see cref="CookieCollection">CookieCollection</see> containing the cookies for the new logged in session.</returns>
          * <exception cref="AuthenticationException">Thrown when credentials are incorrect or the login has failed for another reason.</exception>
          */
-        public async Task<PersistentWebClient> Login()
+        private async Task<PersistentWebClient> login()
         {
             try
             {
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Login started");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(login)}", "Login started");
 
                 // Simplified flow of SAML SSO login process
                 //
@@ -293,11 +300,11 @@ namespace AutoMarkCheck.Grades
                 request.Headers.Add(HttpRequestHeader.CacheControl, "no-cache");
                 request.AllowAutoRedirect = false;
 
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Login request opened.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(login)}", "Login request opened.");
 
                 using (Stream stream = await request.GetRequestStreamAsync())
                 {
-                    Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Writing login credentials.");
+                    Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(login)}", "Writing login credentials.");
                     //Write UUID, Username and the start of the password
                     await stream.WriteAsync(authMethodData, 0, authMethodData.Length);
                     await stream.WriteAsync(userData, 0, userData.Length);
@@ -329,7 +336,7 @@ namespace AutoMarkCheck.Grades
                     }
                 }
 
-                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Getting login response.");
+                Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(login)}", "Getting login response.");
 
                 //Get the login response
                 using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
@@ -338,12 +345,12 @@ namespace AutoMarkCheck.Grades
 
                     if (respStr.Contains("Incorrect user ID or password"))
                     {
-                        Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Login was rejected by the server because the user ID or password is incorrect.");
+                        Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(login)}", "Login was rejected by the server because the user ID or password is incorrect.");
                         throw new AuthenticationException("Login failure returned from server: invalid credentials.");
                     }
-                    else if(respStr.Contains("An error occurred"))
+                    else if (respStr.Contains("An error occurred"))
                     {
-                        Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Login was rejected by the server because an error occured.");
+                        Logging.Log(Logging.LogLevel.ERROR, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(login)}", "Login was rejected by the server because an error occured.");
                         throw new Exception("Login failure returned from server: an error occured");
                     }
 
@@ -352,7 +359,7 @@ namespace AutoMarkCheck.Grades
 
                 await finalizeLogin(client);
 
-                Logging.Log(Logging.LogLevel.INFO, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(Login)}", "Successfully logged into Student Records.");
+                Logging.Log(Logging.LogLevel.INFO, $"{nameof(AutoMarkCheck)}.{nameof(StudentRecordGradeSource)}.{nameof(login)}", "Successfully logged into Student Records.");
 
                 return client;
             }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -32,7 +33,7 @@ namespace AutoMarkCheck.Helpers
         /**
          * <summary>Performs a GET request at the  URL and returns the HTML string.</summary>
          */
-        public async Task<PersistentWebClientResponse> GetWithHeaders(string url)
+        public async Task<PersistentWebClientResponse> GetWithHeaders(string url, string referer = null)
         {
             HttpWebRequest request = WebRequest.CreateHttp(url);
             request.UserAgent = UserAgent;
@@ -43,6 +44,8 @@ namespace AutoMarkCheck.Helpers
             request.AllowAutoRedirect = false;
             request.Headers.Add(HttpRequestHeader.AcceptEncoding, "identity");
             request.Headers.Add(HttpRequestHeader.CacheControl, "no-cache");
+            if (referer != null)
+                request.Referer = referer;
 
             //Get response
             using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
@@ -69,7 +72,7 @@ namespace AutoMarkCheck.Helpers
         /**
          * <summary>Performs a POST request at a URL and sends post data then returns the HTML string.</summary>
          */
-        public async Task<PersistentWebClientResponse> PostWithHeaders(string url, Dictionary<string, string> postData)
+        public async Task<PersistentWebClientResponse> PostWithHeaders(string url, Dictionary<string, string> postData, string referer = null)
         {
             HttpWebRequest request = WebRequest.CreateHttp(url);
             request.UserAgent = UserAgent;
@@ -78,7 +81,8 @@ namespace AutoMarkCheck.Helpers
             request.Method = "POST";
             request.ContentType = "application/x-www-form-urlencoded";
             request.AllowAutoRedirect = false;
-
+            if (referer != null)
+                request.Referer = referer;
 
             //Encode the post data as a post tring
             string postStr = "";
@@ -135,7 +139,7 @@ namespace AutoMarkCheck.Helpers
             string cookieStr = "";
             foreach(Cookie c in Cookies)
             {
-                cookieStr += c.Name + " = " + c.Value + "\n";
+                cookieStr += c.Domain + ": " + c.Path + ": " + c.Name + " = " + c.Value + "\n";
             }
             if (cookieStr.Length > 0)
             {
@@ -146,6 +150,33 @@ namespace AutoMarkCheck.Helpers
             {
                 MessageBox.Show(msg + " No cookies.");
             }
+        }
+
+        public void PrintCookies()
+        {
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Web Client Cookies:");
+            foreach (Cookie c in Cookies)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine(c.Domain + " - " + c.Path);
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write(c.Name);
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write("=");
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine(c.Value);
+                Console.WriteLine();
+            }
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Finished cookie print");
+            Console.ResetColor();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
         }
 #endif
 

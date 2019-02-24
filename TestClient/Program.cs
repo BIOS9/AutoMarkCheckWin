@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace TestClient
 {
@@ -12,10 +14,11 @@ namespace TestClient
         static void Main(string[] args)
         {
             var creds = AutoMarkCheck.Helpers.CredentialManager.GetCredentials();
+            if (creds == null)
+                return;
             var source = new AutoMarkCheck.Grades.StudentRecordGradeSource(creds);
-            var test = source.Login().Result;
-            string home = test.Get("https://student-records.vuw.ac.nz/pls/webprod/twbkwbis.P_GenMenu?name=bmenu.P_MainMnu").Result;
-            Console.WriteLine(home);
+            var courses = source.GetGrades();
+            Console.WriteLine(JsonConvert.SerializeObject(courses, Formatting.Indented));
             Console.ReadLine();
         }
     }
