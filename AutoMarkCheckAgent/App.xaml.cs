@@ -104,7 +104,7 @@ namespace AutoMarkCheckAgent
                 if (credentials != null)
                 {
                     agent = new AutoMarkCheck.ServerAgent(credentials, hostname, coursesPublic);
-                    gradeSource = new AutoMarkCheck.Grades.MyVuwGradeSource(credentials);
+                    gradeSource = new AutoMarkCheck.Grades.StudentRecordGradeSource(credentials);
                     List<AutoMarkCheck.Grades.CourseInfo> grades = await gradeSource.GetGrades();
                     if (grades == null || grades.Count == 0)
                         throw new Exception("Grade list empty.");
