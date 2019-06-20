@@ -82,7 +82,7 @@
                 <SolidColorBrush Color="Black" Opacity="0.75"/>
             </Button.Background>
         </Button>
-        <Button x:Name="TestButton" Foreground="White" Style="{StaticResource MetroButton}" BorderBrush="#FF006CAD" FontSize="14" Padding="1,-2,1,1" Height="23" VerticalAlignment="Bottom" VerticalContentAlignment="Center" HorizontalAlignment="Left" Content="Test Connection" Margin="15,0,0,55" Width="217">
+        <Button x:Name="TestButton" Foreground="White" Style="{StaticResource MetroButton}" BorderBrush="#FF006CAD" FontSize="14" Padding="1,-2,1,1" Height="23" VerticalAlignment="Bottom" VerticalContentAlignment="Center" HorizontalAlignment="Left" Content="Test Connection" Margin="15,0,0,55" Width="217" Click="TestButton_Click" IsEnabled="False">
             <Button.Background>
                 <SolidColorBrush Color="Black" Opacity="0.75"/>
             </Button.Background>

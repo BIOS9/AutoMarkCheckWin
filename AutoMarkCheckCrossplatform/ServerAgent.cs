@@ -7,9 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using static AutoMarkCheck.Helpers.CredentialManager;
 
 namespace AutoMarkCheck
@@ -24,7 +22,6 @@ namespace AutoMarkCheck
         public bool MakeCoursesPublic;
 
         private const string ApiUrl = "http://automarkcheck.kwiius.com:4567/yeet";
-        private const string TokenPlaceholder = "|[tokenplaceholder]|";
         private string _userAgent = $"Auto Mark Check {Environment.OSVersion.Platform} {Environment.OSVersion.VersionString}/1.0"; //User agent will contain OS name and version
        
 
@@ -47,14 +44,13 @@ namespace AutoMarkCheck
          * <param name="credentials">Credentials containing the Bot Token to be used to authenticate the report.</param>
          * <returns>A boolean indicating if the report was successful.</returns>
          */
-        public async Task<bool> ReportGrades(List<CourseInfo> courses)
+        public async Task<bool> ReportGrades(List<CourseInfo> courses,MarkCredentials credentials)
         {
             try
             {
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Grade report started.");
 
-                string jsonData = SerializeData(courses);
-
+                string jsonData = SerializeData(courses, credentials);
                 await Upload(jsonData);
 
                 Logging.Log(Logging.LogLevel.INFO, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(ReportGrades)}", "Successfully reported grades to bot server.");
@@ -74,13 +70,13 @@ namespace AutoMarkCheck
          * <param name="credentials">Credentials containing the Bot Token to be used to authenticate the report.</param>
          * <returns>A boolean indicating if the report was successful.</returns>
          */
-        public async Task<bool> ReportError(string error)
+        public async Task<bool> ReportError(string error, MarkCredentials credentials)
         {
             try
             {
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(ReportError)}", "Error report started.");
 
-                string jsonData = SerializeData(null, error);
+                string jsonData = SerializeData(null, credentials);
                 await Upload(jsonData);
 
                 Logging.Log(Logging.LogLevel.INFO, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(ReportError)}", "Successfully reported error to bot server.");
@@ -102,14 +98,7 @@ namespace AutoMarkCheck
         {
             Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(Upload)}", "Report upload started.");
 
-            string beforeToken = jsonData.Substring(0, jsonData.IndexOf(TokenPlaceholder));
-            string afterToken = jsonData.Substring(jsonData.IndexOf(TokenPlaceholder) + TokenPlaceholder.Length);
-
-            //Calculate length of post JSON data
-            byte[] beforeTokenBytes = CredentialManager.MarkCredentials.CredentialEncoding.GetBytes(beforeToken);
-            byte[] afterTokenBytes = CredentialManager.MarkCredentials.CredentialEncoding.GetBytes(afterToken);
-
-            int dataLength = Credentials.EscapedApiKeySize + beforeTokenBytes.Length + afterTokenBytes.Length;
+            byte[] requestData = CredentialManager.MarkCredentials.CredentialEncoding.GetBytes(jsonData);
 
             //Create request
             HttpWebRequest request = WebRequest.CreateHttp(ApiUrl);
@@ -117,7 +106,7 @@ namespace AutoMarkCheck
             //Set HTTP data such as headers
             request.Method = "POST";
             request.ContentType = "application/json";
-            request.ContentLength = dataLength;
+            request.ContentLength = requestData.Length;
             request.UserAgent = _userAgent;
             request.Accept = "*/*";
             request.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip, deflate");
@@ -127,36 +116,8 @@ namespace AutoMarkCheck
             using (Stream stream = await request.GetRequestStreamAsync())
             {
                 Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(Upload)}", "Writing login credentials.");
-                //Write first part of JSON before token
-                await stream.WriteAsync(beforeTokenBytes, 0, beforeTokenBytes.Length);
-
-                //Write token to stream character by character
-                IntPtr tokenPtr = Marshal.SecureStringToBSTR(Credentials.ApiKey); //Convert SecureString token to BSTR and get the pointer
-                try
-                {
-                    byte b = 1;
-                    int i = 0;
-
-                    while (true) //Loop over characters in the BSTR
-                    {
-                        b = Marshal.ReadByte(tokenPtr, i);
-                        if (b == 0) break; //If terminator character '\0' is hit exit loop
-
-                        string escapedChar = JsonConvert.ToString((char)b); //Token is uploaded in JSON so it must be escaped in both json then URI format
-                        escapedChar = escapedChar.Remove(0, 1); //To remove the leading "
-                        escapedChar = escapedChar.Remove(escapedChar.Length - 1, 1); //To remove the trailing "
-                        byte[] escapedCharBytes = CredentialManager.MarkCredentials.CredentialEncoding.GetBytes(escapedChar);
-                        await stream.WriteAsync(escapedCharBytes, 0, escapedCharBytes.Length);
-
-                        i = i + 2;  // BSTR is unicode and occupies 2 bytes
-                    }
-                }
-                finally
-                {
-                    Marshal.ZeroFreeBSTR(tokenPtr); //Securely clear token BSTR from memory
-                }
-
-                await stream.WriteAsync(afterTokenBytes, 0, afterTokenBytes.Length); //Write the end of the JSON
+                //Write the JSON
+                await stream.WriteAsync(requestData, 0, requestData.Length);
             }
 
             Logging.Log(Logging.LogLevel.DEBUG, $"{nameof(AutoMarkCheck)}.{nameof(ServerAgent)}.{nameof(Upload)}", "Getting report response.");
@@ -187,7 +148,7 @@ namespace AutoMarkCheck
          * <param name="error">If error is set, courses will be ignored and the report will be serialized as an error report.</param>
          * <returns>A JSON string containing the serialized report.</returns>
          */
-        private string SerializeData(List<CourseInfo> courses, string error = null)
+        private string SerializeData(List<CourseInfo> courses, MarkCredentials credentials, string error = null)
         {
             try
             {
@@ -210,7 +171,7 @@ namespace AutoMarkCheck
                 jsonObject.coursesPublic = MakeCoursesPublic;
 
                 //Using a place holder for the token so it can be injected into the upload stream to prevent storing the unencrypted token in memory.
-                jsonObject.token = TokenPlaceholder;
+                jsonObject.token = credentials.ApiKey;
 
                 return JsonConvert.SerializeObject(jsonObject); //Convert object into JSON string.
             }

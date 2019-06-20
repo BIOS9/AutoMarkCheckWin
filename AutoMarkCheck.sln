@@ -18,6 +18,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AutoMarkCheckTray", "AutoMa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestClient", "TestClient\TestClient.csproj", "{12431D21-D08F-4314-A205-3DCA75A86704}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoMarkCheckCrossplatform", "AutoMarkCheckCrossplatform\AutoMarkCheckCrossplatform.csproj", "{35D7311A-25BF-4769-9DAB-8DBBED717A0E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,6 +88,18 @@ Global
 		{12431D21-D08F-4314-A205-3DCA75A86704}.Release|x64.Build.0 = Release|Any CPU
 		{12431D21-D08F-4314-A205-3DCA75A86704}.Release|x86.ActiveCfg = Release|Any CPU
 		{12431D21-D08F-4314-A205-3DCA75A86704}.Release|x86.Build.0 = Release|Any CPU
+		{35D7311A-25BF-4769-9DAB-8DBBED717A0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35D7311A-25BF-4769-9DAB-8DBBED717A0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35D7311A-25BF-4769-9DAB-8DBBED717A0E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{35D7311A-25BF-4769-9DAB-8DBBED717A0E}.Debug|x64.Build.0 = Debug|Any CPU
+		{35D7311A-25BF-4769-9DAB-8DBBED717A0E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{35D7311A-25BF-4769-9DAB-8DBBED717A0E}.Debug|x86.Build.0 = Debug|Any CPU
+		{35D7311A-25BF-4769-9DAB-8DBBED717A0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35D7311A-25BF-4769-9DAB-8DBBED717A0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35D7311A-25BF-4769-9DAB-8DBBED717A0E}.Release|x64.ActiveCfg = Release|Any CPU
+		{35D7311A-25BF-4769-9DAB-8DBBED717A0E}.Release|x64.Build.0 = Release|Any CPU
+		{35D7311A-25BF-4769-9DAB-8DBBED717A0E}.Release|x86.ActiveCfg = Release|Any CPU
+		{35D7311A-25BF-4769-9DAB-8DBBED717A0E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

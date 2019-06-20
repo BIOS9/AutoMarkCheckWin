@@ -167,5 +167,10 @@ namespace AutoMarkCheckAgent
         {
             App.Settings.CheckingEnabled = false;
         }
+
+        private void TestButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

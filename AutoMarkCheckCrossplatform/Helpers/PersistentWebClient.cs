@@ -46,8 +46,20 @@ namespace AutoMarkCheck.Helpers
             if (referer != null)
                 request.Referer = referer;
 
+            HttpWebResponse response = null;
+
+            // .net core fix, it errors on 302 response code, ignore it
+            try
+            {
+                response = (HttpWebResponse)await request.GetResponseAsync();
+            }
+            catch (WebException e)
+            {
+                if (e.Message.Contains("302"))
+                    response = (HttpWebResponse)e.Response;
+            }
+
             //Get response
-            using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
             using (Stream stream = response.GetResponseStream())
             using (StreamReader reader = new StreamReader(stream))
             {
@@ -97,8 +109,20 @@ namespace AutoMarkCheck.Helpers
             using (Stream stream = await request.GetRequestStreamAsync())
                 await stream.WriteAsync(postBytes, 0, postBytes.Length);
 
+            HttpWebResponse response = null;
+
+            // .net core fix, it errors on 302 response code, ignore it
+            try
+            {
+                response = (HttpWebResponse)await request.GetResponseAsync();
+            }
+            catch (WebException e)
+            {
+                if (e.Message.Contains("302"))
+                    response = (HttpWebResponse)e.Response;
+            }
+
             //Get response
-            using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
             using (Stream stream = response.GetResponseStream())
             using (StreamReader reader = new StreamReader(stream))
             {
